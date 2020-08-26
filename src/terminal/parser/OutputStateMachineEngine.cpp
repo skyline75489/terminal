@@ -851,19 +851,18 @@ bool OutputStateMachineEngine::ActionSs3Dispatch(const wchar_t /*wch*/,
     return false;
 }
 
-bool OutputStateMachineEngine::ActionInitializeDcsPassThrough(const VTID id, const gsl::span<const size_t> parameters)
+bool OutputStateMachineEngine::ActionInitializeDcsPassThrough(const VTID /*id*/, const gsl::span<const size_t> /*parameters*/)
 {
     _ClearLastChar();
     return false;
 };
 
-bool OutputStateMachineEngine::ActionDcsPassThrough(const wchar_t wch)
+bool OutputStateMachineEngine::ActionDcsPassThrough(const wchar_t /*wch*/)
 {
     _ClearLastChar();
     return false;
 }
         
-
 // Routine Description:
 // - Retrieves the listed graphics options to be applied in order to the "font style" of the next characters inserted into the buffer.
 // Arguments:

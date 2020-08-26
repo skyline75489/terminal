@@ -529,12 +529,12 @@ bool InputStateMachineEngine::ActionSs3Dispatch(const wchar_t wch,
     return success;
 }
 
-bool InputStateMachineEngine::ActionInitializeDcsPassThrough(const VTID id, const gsl::span<const size_t> /*parameters*/)
+bool InputStateMachineEngine::ActionInitializeDcsPassThrough(const VTID /*id*/, const gsl::span<const size_t> /*parameters*/)
 {
     return false;
 }
 
-bool InputStateMachineEngine::ActionDcsPassThrough(const wchar_t wch)
+bool InputStateMachineEngine::ActionDcsPassThrough(const wchar_t /*wch*/)
 {
     return false;
 }

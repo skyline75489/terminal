@@ -643,7 +643,6 @@ void StateMachine::_ActionDcsPassThrough(const wchar_t wch)
 {
     _trace.TraceOnAction(L"DcsPassThrough");
     _trace.TraceOnExecute(wch);
-    // TODO:GH#7316: Send the DCS passthrough sequence to the engine
     if (_isInDcsPassThrough)
     {
         _engine->ActionDcsPassThrough(wch);
