@@ -157,6 +157,9 @@ namespace Microsoft::Console::VirtualTerminal
         bool ActionSs3Dispatch(const wchar_t wch,
                                const gsl::span<const size_t> parameters) override;
 
+        bool ActionInitializeDcsPassThrough(const VTID id, const gsl::span<const size_t> parameters) override;
+        bool ActionDcsPassThrough(const wchar_t wch) override;
+
         bool ParseControlSequenceAfterSs3() const noexcept override;
         bool FlushAtEndOfString() const noexcept override;
         bool DispatchControlCharsFromEscape() const noexcept override;

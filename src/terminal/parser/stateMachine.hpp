@@ -153,6 +153,7 @@ namespace Microsoft::Console::VirtualTerminal
         std::wstring _oscString;
         size_t _oscParameter;
 
+        bool _isInDcsPassThrough;
         std::optional<std::wstring> _cachedSequence;
 
         // This is tracked per state machine instance so that separate calls to Process*
