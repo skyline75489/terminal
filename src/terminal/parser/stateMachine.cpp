@@ -650,8 +650,8 @@ void StateMachine::_ActionDcsPassThrough(const wchar_t wch)
     _trace.TraceOnExecute(wch);
     if (!_isDcsPassingThrough)
     {
-        // The first character being passed through is the "final character", which combined with intermidiates
-        // defines the functionality of the DCS sequence.
+        // The first character being passed through is the "final character", which combined with intermediates
+        // defines the functionality of the DCS sequence. Here we treat it as part of the identifier.
         _identifier.AddIntermediate(wch);
         _isDcsPassingThrough = true;
     }
@@ -1727,8 +1727,8 @@ void StateMachine::_EventDcsTermination(const wchar_t wch)
     {
         // TODO: The Dcs sequence has successfully terminated. This is where we'd be dispatching the DCS command.
         const auto success = _engine->ActionDcsDispatch(_identifier.Finalize(),
-                                                   { _parameters.data(), _parameters.size() },
-                                                   _dcsDataString);
+                                                        { _parameters.data(), _parameters.size() },
+                                                        _dcsDataString);
         if (!success)
         {
             TermTelemetry::Instance().LogFailed(wch);
