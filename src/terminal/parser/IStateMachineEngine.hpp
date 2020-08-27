@@ -48,8 +48,7 @@ namespace Microsoft::Console::VirtualTerminal
         virtual bool ActionSs3Dispatch(const wchar_t wch,
                                        const gsl::span<const size_t> parameters) = 0;
 
-        virtual bool ActionDcsDispatch(const VTID id, const gsl::span<const size_t> parameters,
-                                       const std::wstring_view string) = 0;
+        virtual bool ActionDcsDispatch(const VTID id, const gsl::span<const size_t> parameters, const std::wstring_view string) = 0;
 
         virtual bool ParseControlSequenceAfterSs3() const = 0;
         virtual bool FlushAtEndOfString() const = 0;

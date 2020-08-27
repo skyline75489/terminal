@@ -530,12 +530,11 @@ bool InputStateMachineEngine::ActionSs3Dispatch(const wchar_t wch,
 }
 
 bool InputStateMachineEngine::ActionDcsDispatch(const VTID /*id*/,
-                                                      const gsl::span<const size_t> /*parameters*/,
-                                                      const std::wstring_view /*string*/)
+                                                const gsl::span<const size_t> /*parameters*/,
+                                                const std::wstring_view /*string*/)
 {
     return false;
 }
-
 
 // Method Description:
 // - Triggers the Clear action to indicate that the state machine should erase
