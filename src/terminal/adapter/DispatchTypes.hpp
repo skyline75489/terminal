@@ -85,6 +85,11 @@ namespace Microsoft::Console::VirtualTerminal
             return _idAccumulator + (static_cast<uint64_t>(finalChar) << _idShift);
         }
 
+        VTID Finalize() noexcept
+        {
+            return _idAccumulator;
+        }
+
     private:
         uint64_t _idAccumulator = 0;
         size_t _idShift = 0;

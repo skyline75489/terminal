@@ -851,17 +851,28 @@ bool OutputStateMachineEngine::ActionSs3Dispatch(const wchar_t /*wch*/,
     return false;
 }
 
-bool OutputStateMachineEngine::ActionInitializeDcsPassThrough(const VTID /*id*/, const gsl::span<const size_t> /*parameters*/)
+// Routine Description:
+// - Triggers the DcsDispatch action if the identifier is valid. For DCS sequences, the data passed
+//      through is needed before any real action is dispatched. 
+// Arguments:
+// - id - Identifier of the control sequence to dispatch.
+// - parameters - set of numeric parameters collected while parsing the sequence.
+// - string - data string we've collected. NOT null terminated.
+// Return Value:
+// - true iff the final character is valid.
+bool OutputStateMachineEngine::ActionDcsDispatch(const VTID id, const gsl::span<const size_t> /*parameters*/,
+                                                 const std::wstring_view /*data*/)
 {
-    _ClearLastChar();
+    switch (id)
+    {
+    case DcsActionCodes::DECRQSS_RequestStatusString:
+    case DcsActionCodes::DECSIXEL_Sixel:
+        return true;
+    }
+
     return false;
 };
 
-bool OutputStateMachineEngine::ActionDcsPassThrough(const wchar_t /*wch*/)
-{
-    _ClearLastChar();
-    return false;
-}
         
 // Routine Description:
 // - Retrieves the listed graphics options to be applied in order to the "font style" of the next characters inserted into the buffer.

@@ -17,6 +17,8 @@ StateMachine::StateMachine(std::unique_ptr<IStateMachineEngine> engine) :
     _isInAnsiMode(true),
     _parameters{},
     _oscString{},
+    _isDcsPassingThrough(false),
+    _dcsDataString{},
     _cachedSequence{ std::nullopt },
     _processingIndividually(false)
 {
@@ -546,6 +548,9 @@ void StateMachine::_ActionClear()
     _oscString.clear();
     _oscParameter = 0;
 
+    _isDcsPassingThrough = false;
+    _dcsDataString.clear();
+
     _engine->ActionClear();
 }
 
@@ -643,16 +648,16 @@ void StateMachine::_ActionDcsPassThrough(const wchar_t wch)
 {
     _trace.TraceOnAction(L"DcsPassThrough");
     _trace.TraceOnExecute(wch);
-    if (_isInDcsPassThrough)
+    if (!_isDcsPassingThrough)
     {
-        _engine->ActionDcsPassThrough(wch);
+        // The first character being passed through is the "final character", which combined with intermidiates
+        // defines the functionality of the DCS sequence.
+        _identifier.AddIntermediate(wch);
+        _isDcsPassingThrough = true;
     }
     else
     {
-        if (_engine->ActionInitializeDcsPassThrough(_identifier.Finalize(wch), { _parameters.data(), _parameters.size() }))
-        {
-            _isInDcsPassThrough = true;
-        }
+        _dcsDataString.push_back(wch);
     }
 }
 
@@ -1696,6 +1701,39 @@ void StateMachine::_EventVariableLengthStringTermination(const wchar_t wch)
         {
             // We don't support any SOS/PM/APC control string yet.
         }
+        _EnterGround();
+    }
+    else
+    {
+        _EnterEscape();
+        _EventEscape(wch);
+    }
+}
+
+// Routine Description:
+// - Handle the two-character termination of a DCS sequence.
+//   Events in this state will:
+//   1. Enter ground on a string terminator
+//   2. Pass on everything else as the start of a regular escape sequence
+// Arguments:
+// - wch - Character that triggered the event
+// Return Value:
+// - <none>
+void StateMachine::_EventDcsTermination(const wchar_t wch)
+{
+    _trace.TraceOnEvent(L"DcsTermination");
+
+    if (_isStringTerminatorIndicator(wch))
+    {
+        // TODO: The Dcs sequence has successfully terminated. This is where we'd be dispatching the DCS command.
+        const auto success = _engine->ActionDcsDispatch(_identifier.Finalize(),
+                                                   { _parameters.data(), _parameters.size() },
+                                                   _dcsDataString);
+        if (!success)
+        {
+            TermTelemetry::Instance().LogFailed(wch);
+        }
+
         _EnterGround();
     }
     else

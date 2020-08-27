@@ -50,8 +50,7 @@ namespace Microsoft::Console::VirtualTerminal
         bool ActionSs3Dispatch(const wchar_t wch,
                                const gsl::span<const size_t> parameters) noexcept override;
 
-        bool ActionInitializeDcsPassThrough(const VTID id, const gsl::span<const size_t> parameters) override;
-        bool ActionDcsPassThrough(const wchar_t wch) override;
+        bool ActionDcsDispatch(const VTID id, const gsl::span<const size_t> parameters, const std::wstring_view string) override;
 
         bool ParseControlSequenceAfterSs3() const noexcept override;
         bool FlushAtEndOfString() const noexcept override;
@@ -135,6 +134,12 @@ namespace Microsoft::Console::VirtualTerminal
             DECSCUSR_SetCursorStyle = VTID(" q"),
             DECSTR_SoftReset = VTID("!p"),
             DECSCPP_SetColumnsPerPage = VTID("$|")
+        };
+
+        enum DcsActionCodes : uint64_t
+        {
+            DECRQSS_RequestStatusString = VTID("$q"),
+            DECSIXEL_Sixel = VTID("q")
         };
 
         enum Vt52ActionCodes : uint64_t

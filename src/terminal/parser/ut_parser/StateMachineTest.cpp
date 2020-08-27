@@ -73,8 +73,9 @@ public:
     bool ActionSs3Dispatch(const wchar_t /* wch */,
                            const gsl::span<const size_t> /* parameters */) override { return true; };
 
-    bool ActionInitializeDcsPassThrough(const VTID id, const gsl::span<const size_t> parameters) override { return false; }
-    bool ActionDcsPassThrough(const wchar_t wch) override { return false; }
+    bool ActionDcsDispatch(const VTID /*id*/,
+                           const gsl::span<const size_t> /*parameters*/,
+                           const std::wstring_view /*string*/) override { return false; }
 
     bool ParseControlSequenceAfterSs3() const override { return false; }
     bool FlushAtEndOfString() const override { return false; };
