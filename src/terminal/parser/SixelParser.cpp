@@ -4,7 +4,6 @@
 
 using namespace Microsoft::Console::VirtualTerminal;
 
-constexpr uint8_t defaultAspectRatio = 2;
 constexpr size_t MAX_PARAMETER_VALUE = 32767;
 
 constexpr til::color sixelDefaultColorTable[] = {
@@ -49,9 +48,17 @@ static constexpr bool _isDataStringCharacter(const wchar_t wch) noexcept
 }
 
 SixelParser::SixelParser(const gsl::span<const size_t> parameters, std::wstring_view data) :
-    _aspectRatio(defaultAspectRatio),
-    _backgroundOption(SixelBackgroundOption::Set),
-    _horizontalGridSize(0)
+    _attrPad(1),
+    _attrPan(2),
+    _repeatCount(1),
+    _colorIndex(0),
+    _posX(0),
+    _posY(0),
+    _maxX(0),
+    _maxY(0),
+    _width(0),
+    _height(0),
+    _data({})
 {
     _PrepareParemeters(parameters);
     _Parse(data);
@@ -64,83 +71,166 @@ void SixelParser::_PrepareParemeters(const gsl::span<const size_t> parameters)
         return;
     }
 
-    uint8_t p1 = defaultAspectRatio;
-
     if (parameters.size() >= 1)
     {
         switch (parameters[0])
         {
         case 0:
         case 1:
-            p1 = 2;
+            _attrPad = 2;
             break;
         case 2:
-            p1 = 5;
+            _attrPad = 5;
             break;
         case 3:
         case 4:
-            p1 = 3;
+            _attrPad = 4;
             break;
         case 5:
         case 6:
-            p1 = 2;
+            _attrPad = 3;
             break;
         case 7:
         case 8:
+            _attrPad = 2;
+            break;
         case 9:
-            p1 = 1;
+            _attrPad = 1;
             break;
         default:
-            p1 = defaultAspectRatio;
+            _attrPad = 2;
             break;
         }
     }
 
-    _aspectRatio = p1;
-
-    if (parameters.size() >= 2)
-    {
-        switch (parameters[1])
-        {
-        case 0:
-        case 2:
-            _backgroundOption = SixelBackgroundOption::Set;
-            break;
-        case 1:
-            _backgroundOption = SixelBackgroundOption::Remain;
-            break;
-        default:
-            _backgroundOption = SixelBackgroundOption::Set;
-            break;
-        }
-    }
+    size_t pn3 = 0;
 
     if (parameters.size() >= 3)
     {
-        _horizontalGridSize = parameters[2];
+        pn3 = parameters[2];
+        if (pn3 == 0)
+        {
+            pn3 = 10;
+        }
+
+        _attrPan = _attrPan * pn3 / 10;
+        _attrPad = _attrPad * pn3 / 10;
+
+        if (_attrPan <= 0)
+        {
+            _attrPan = 1;
+        }
+        if (_attrPad <= 0)
+        {
+            _attrPad = 1;
+        }
     }
 }
 
 void SixelParser::_Parse(std::wstring_view data)
 {
     auto it = data.begin();
-    auto end = data.end();
+    const auto end = data.end();
     while (it != end)
     {
-        wchar_t wch = *it;
-        size_t repeatCount = 1;
+        const wchar_t wch = *it;
 
         switch (wch)
         {
         case SixelControlCodes::GraphicsRepeatIntroducer:
         {
-            _AccumulateParameter(it++, end, repeatCount);
+            _AccumulateParameter(it++, end, _repeatCount);
+            break;
+        }
+        case SixelControlCodes::ColorIntroducer:
+        {
+            _AccumulateParameter(it++, end, _colorIndex);
+            break;
+        }
+        default:
+        {
+            break;
         }
         }
 
         if (_isDataStringCharacter(wch))
         {
-            it++;
+            auto sx = _width;
+            while (sx < _posX + _repeatCount)
+            {
+                sx *= 2;
+            }
+
+            auto sy = _height;
+            while (sy < _posY + 6)
+            {
+                sy *= 2;
+            }
+
+            if (sx > _width || sy > _height)
+            {
+                _Resize(sx, sy);
+            }
+
+            const auto bits = wch - L'?';
+
+            if (bits == 0)
+            {
+                _posX += _repeatCount;
+            }
+            else
+            {
+                auto sixel_vertical_mask = 0x01;
+                if (_repeatCount <= 1)
+                {
+                    for (auto i = 0; i < 6; i++)
+                    {
+                        if ((bits & sixel_vertical_mask) != 0)
+                        {
+                            _data.at(_posY + i).at(_posX) = (char)_colorIndex;
+                            _maxX = std::max(_maxX, _posX);
+                            _maxY = std::max(_maxY, _posY + 1);
+                        }
+                        sixel_vertical_mask <<= 1;
+                    }
+
+                    _posX += 1;
+                }
+                else
+                {
+                    /* context->repeat_count > 1 */
+                    for (auto i = 0; i < 6; i++)
+                    {
+                        if ((bits & sixel_vertical_mask) != 0)
+                        {
+                            auto c = sixel_vertical_mask << 1;
+                            auto n = 1;
+                            for (; (i + n) < 6; n++)
+                            {
+                                if ((bits & c) == 0)
+                                {
+                                    break;
+                                }
+                                c <<= 1;
+                            }
+                            for (auto y = _posY + i; y < _posY + i + n; ++y)
+                            {
+                                const auto start = std::next(_data.at(y).begin(), _posX);
+                                const auto cend = start + _repeatCount;
+                                std::fill(start, cend, (char)_colorIndex);
+                            }
+                            _maxX = std::max(_maxX, _posX + _repeatCount - 1);
+                            _maxY = std::max(_maxY, _posY + i + n - 1);
+                            i += (n - 1);
+                            sixel_vertical_mask <<= (n - 1);
+                        }
+                        sixel_vertical_mask <<= 1;
+                    }
+                    _posX += _repeatCount;
+                }
+
+                it++;
+            }
         }
     }
 }
@@ -149,7 +239,7 @@ void SixelParser::_AccumulateParameter(std::wstring_view::const_iterator it, std
 {
     while (it != end)
     {
-        wchar_t wch = *it;
+        const wchar_t wch = *it;
 
         if (_isDataStringCharacter(wch) || _isParameterDelimiter(wch))
         {
@@ -164,6 +254,22 @@ void SixelParser::_AccumulateParameter(std::wstring_view::const_iterator it, std
         if (value > MAX_PARAMETER_VALUE)
         {
             value = MAX_PARAMETER_VALUE;
+        }
+    }
+}
+
+void SixelParser::_Resize(size_t width, size_t height)
+{
+    if (height > _height)
+    {
+        _data.resize(height);
+    }
+
+    if (width > _width)
+    {
+        for (auto row : _data)
+        {
+            row.resize(width);
         }
     }
 }

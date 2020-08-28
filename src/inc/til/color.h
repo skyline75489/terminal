@@ -88,9 +88,9 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
         {
             // Reference: https://chromium.googlesource.com/chromium/src/+/master/ui/gfx/color_utils.cc
 
-            float hue = _h;
-            float saturation = _s;
-            float lightness = _l;
+            const float hue = _h;
+            const float saturation = _s;
+            const float lightness = _l;
 
             // If there's no color, we don't care about hue and can do everything based on
             // brightness.
@@ -99,10 +99,10 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
                 return color(light, light, light, _a);
             }
 
-            float temp2 = (lightness < 0.5f)
+            const float temp2 = (lightness < 0.5f)
                     ? (lightness * (1.0f + saturation))
                     : (lightness + saturation - (lightness * saturation));
-            float temp1 = 2.0f * lightness - temp2;
+            const float temp1 = 2.0f * lightness - temp2;
 
             return color(
                 calcHue(temp1, temp2, hue + 1.0f / 3.0f),
@@ -226,6 +226,12 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
             wss << L"Color " << ToHexString(false);
             return wss.str();
         }
+
+        char to_char() const
+        {
+            return (((r) << 16) + ((g) << 8) + (b));
+        }
+
         std::wstring ToHexString(const bool omitAlpha = false) const
         {
             std::wstringstream wss;
