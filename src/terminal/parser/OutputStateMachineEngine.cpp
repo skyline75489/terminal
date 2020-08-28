@@ -6,6 +6,7 @@
 #include "stateMachine.hpp"
 #include "OutputStateMachineEngine.hpp"
 #include "base64.hpp"
+#include "SixelParser.hpp"
 
 #include "ascii.hpp"
 
@@ -860,12 +861,14 @@ bool OutputStateMachineEngine::ActionSs3Dispatch(const wchar_t /*wch*/,
 // - string - data string we've collected. NOT null terminated.
 // Return Value:
 // - true iff the final character is valid.
-bool OutputStateMachineEngine::ActionDcsDispatch(const VTID id, const gsl::span<const size_t> /*parameters*/, const std::wstring_view /*data*/)
+bool OutputStateMachineEngine::ActionDcsDispatch(const VTID id, const gsl::span<const size_t> parameters, const std::wstring_view data)
 {
     switch (id)
     {
-    case DcsActionCodes::DECRQSS_RequestStatusString:
     case DcsActionCodes::DECSIXEL_Sixel:
+    {
+        SixelParser(parameters, data);
+    }
         return true;
     }
 

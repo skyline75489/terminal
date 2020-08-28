@@ -1,13 +1,23 @@
 #pragma once
 
 #include <string>
+#include "../adapter/DispatchTypes.hpp"
 
 namespace Microsoft::Console::VirtualTerminal
 {
-    enum SixelBackgroundOption
+    enum class SixelBackgroundOption
     {
         Set,
         Remain
+    };
+
+    enum SixelControlCodes : uint64_t
+    {
+        GraphicsRepeatIntroducer = VTID("!"),
+        RasterAttributes = VTID("\""),
+        ColorIntroducer = VTID("#"),
+        GraphicsCarriageReturn = VTID("$"),
+        GraphicsNewLine = VTID("-")
     };
 
     class SixelParser
@@ -17,11 +27,13 @@ namespace Microsoft::Console::VirtualTerminal
 
     private:
 
-        void _PrapareParemeters(const gsl::span<const size_t> parameters);
+        void _PrepareParemeters(const gsl::span<const size_t> parameters);
+        void _Parse(std::wstring_view data);
+        void _AccumulateParameter(std::wstring_view::const_iterator it, std::wstring_view::const_iterator end, size_t& value) noexcept;
 
-        uint8_t _aspectRatio;
+        size_t _aspectRatio;
         SixelBackgroundOption _backgroundOption;
-        uint8_t _horizontalGridSize;
+        size_t _horizontalGridSize;
     };
 }
 

@@ -17,6 +17,7 @@
   <ItemGroup>
     <ClCompile Include="InputEngineTest.cpp" />
     <ClCompile Include="OutputEngineTest.cpp" />
+    <ClCompile Include="SixelParserTest.cpp" />
     <ClCompile Include="StateMachineTest.cpp" />
     <ClCompile Include="Base64Test.cpp" />
     <ClCompile Include="..\precomp.cpp">

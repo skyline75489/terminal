@@ -3,8 +3,31 @@
 
 #pragma once
 
+#include "base/numerics/safe_conversions.h"
+
 namespace til // Terminal Implementation Library. Also: "Today I Learned"
 {
+    constexpr uint8_t ClampRound(float value) {
+      const float rounded =
+          (value >= 0.0f) ? std::floor(value + 0.5f) : std::ceil(value - 0.5f);
+      return base::saturated_cast<uint8_t>(rounded);
+    }
+
+    constexpr uint8_t calcHue(float temp1, float temp2, float hue) {
+      if (hue < 0.0f)
+        ++hue;
+      else if (hue > 1.0f)
+        --hue;
+      float result = temp1;
+      if (hue * 6.0f < 1.0f)
+        result = temp1 + (temp2 - temp1) * hue * 6.0f;
+      else if (hue * 2.0f < 1.0f)
+        result = temp2;
+      else if (hue * 3.0f < 2.0f)
+        result = temp1 + (temp2 - temp1) * (2.0f / 3.0f - hue) * 6.0f;
+      return ClampRound(result * 255);
+    }
+
     // color is a universal integral 8bpp RGBA (0-255) color type implicitly convertible to/from
     // a number of other color types.
 #pragma warning(push)
@@ -60,6 +83,35 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
 
         constexpr color(const color&) = default;
         constexpr color(color&&) = default;
+
+        static color from_hsl(uint8_t _h, uint8_t _s, uint8_t _l, uint8_t _a)
+        {
+            // Reference: https://chromium.googlesource.com/chromium/src/+/master/ui/gfx/color_utils.cc
+
+            float hue = _h;
+            float saturation = _s;
+            float lightness = _l;
+
+            // If there's no color, we don't care about hue and can do everything based on
+            // brightness.
+            if (!saturation) {
+                const uint8_t light = ClampRound(lightness * 255);
+                return color(light, light, light, _a);
+            }
+
+            float temp2 = (lightness < 0.5f)
+                    ? (lightness * (1.0f + saturation))
+                    : (lightness + saturation - (lightness * saturation));
+            float temp1 = 2.0f * lightness - temp2;
+
+            return color(
+                calcHue(temp1, temp2, hue + 1.0f / 3.0f),
+                calcHue(temp1, temp2, hue),
+                calcHue(temp1, temp2, hue - 1.0f / 3.0f),
+                _a
+            );
+        }
+
         color& operator=(const color&) = default;
         color& operator=(color&&) = default;
         ~color() = default;
