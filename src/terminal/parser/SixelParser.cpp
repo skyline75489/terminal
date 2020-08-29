@@ -209,6 +209,7 @@ void SixelParser::_Parse(std::wstring_view data)
         {
         case SixelControlCodes::GraphicsRepeatIntroducer:
         {
+            _repeatCount = 1;
             auto params = _AccumulateParameters(++it, end);
             _repeatCount = params.at(0);
             continue;
@@ -347,6 +348,8 @@ void SixelParser::_Parse(std::wstring_view data)
                     _posX += _repeatCount;
                 }
             }
+
+            _repeatCount = 1;
 
             it++;
         }
