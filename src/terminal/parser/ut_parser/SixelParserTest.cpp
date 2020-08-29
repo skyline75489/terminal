@@ -28,9 +28,9 @@ class Microsoft::Console::VirtualTerminal::SixelParserTest
 {
     TEST_CLASS(SixelParserTest);
 
-    TEST_METHOD(TestPrepareParameter)
+    TEST_METHOD(TestParse)
     {
-
+        SixelParser parser(L"#1NNNN#2NNNN#3NNNN$oooo#1oooo#2oooo-#3BBBB#1BBBB#2BBBB${{{{#3{{{{#1{{{{????");
     }
 };
 

@@ -17,13 +17,15 @@ namespace Microsoft::Console::VirtualTerminal
     class SixelParser
     {
     public:
+        SixelParser(std::wstring_view data);
         SixelParser(const gsl::span<const size_t> parameters, std::wstring_view data);
 
     private:
 
         void _PrepareParemeters(const gsl::span<const size_t> parameters);
         void _Parse(std::wstring_view data);
-        void _AccumulateParameter(std::wstring_view::const_iterator it, std::wstring_view::const_iterator end, size_t& value) noexcept;
+        void _InitPalette();
+        std::vector<size_t> _AccumulateParameters(std::wstring_view::const_iterator& it, std::wstring_view::const_iterator end) noexcept;
         void _Resize(size_t width, size_t height);
 
         size_t _attrPad;
@@ -41,7 +43,8 @@ namespace Microsoft::Console::VirtualTerminal
         size_t _width;
         size_t _height;
 
-        std::vector<std::vector<char>> _data;
+        std::vector<til::color> _palette;
+        std::vector<std::vector<til::color>> _data;
     };
 }
 

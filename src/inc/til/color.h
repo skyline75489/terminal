@@ -7,13 +7,15 @@
 
 namespace til // Terminal Implementation Library. Also: "Today I Learned"
 {
-    constexpr uint8_t ClampRound(float value) {
+    constexpr uint8_t ClampRound(float value)
+    {
       const float rounded =
           (value >= 0.0f) ? std::floor(value + 0.5f) : std::ceil(value - 0.5f);
       return base::saturated_cast<uint8_t>(rounded);
     }
 
-    constexpr uint8_t calcHue(float temp1, float temp2, float hue) {
+    constexpr uint8_t calcHue(float temp1, float temp2, float hue)
+    {
       if (hue < 0.0f)
         ++hue;
       else if (hue > 1.0f)
@@ -26,6 +28,11 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
       else if (hue * 3.0f < 2.0f)
         result = temp1 + (temp2 - temp1) * (2.0f / 3.0f - hue) * 6.0f;
       return ClampRound(result * 255);
+    }
+
+    constexpr uint8_t pavVal(uint8_t n, uint8_t a, uint8_t m)
+    {
+        return ((n) * (a) + ((m) / 2)) / (m);
     }
 
     // color is a universal integral 8bpp RGBA (0-255) color type implicitly convertible to/from
@@ -84,7 +91,7 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
         constexpr color(const color&) = default;
         constexpr color(color&&) = default;
 
-        static color from_hsl(uint8_t _h, uint8_t _s, uint8_t _l, uint8_t _a)
+        static color from_hsl(uint16_t _h, uint8_t _s, uint8_t _l, uint8_t _a)
         {
             // Reference: https://chromium.googlesource.com/chromium/src/+/master/ui/gfx/color_utils.cc
 
@@ -110,6 +117,11 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
                 calcHue(temp1, temp2, hue - 1.0f / 3.0f),
                 _a
             );
+        }
+
+        static color from_xrgb(uint8_t _r, uint8_t _g, uint8_t _b)
+        {
+            return color(pavVal(_r, 255, 100), pavVal(_g, 255, 100), pavVal(_b, 255, 100));
         }
 
         color& operator=(const color&) = default;
@@ -227,7 +239,7 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
             return wss.str();
         }
 
-        char to_char() const
+        uint8_t to_uint() const
         {
             return (((r) << 16) + ((g) << 8) + (b));
         }
