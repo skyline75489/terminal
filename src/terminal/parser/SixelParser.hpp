@@ -31,8 +31,7 @@ namespace Microsoft::Console::VirtualTerminal
         std::vector<std::vector<til::color>>& GetBitmapData();
 
     private:
-
-        void _PrepareParemeters(const gsl::span<const size_t> parameters);
+        void _PrepareParameters(const gsl::span<const size_t> parameters);
         void _Parse(std::wstring_view data);
         void _InitPalette();
         void _AccumulateTo(const wchar_t wch, size_t& value) noexcept;
@@ -41,7 +40,8 @@ namespace Microsoft::Console::VirtualTerminal
         void ProcessCharacter(const wchar_t wch);
 
         void _ActionControlCharacter(const wchar_t wch);
-        void _ActionParam(const wchar_t wch);;
+        void _ActionParam(const wchar_t wch);
+        ;
         void _ActionIgnore() noexcept;
         void _ActionDataString(const wchar_t wch);
         void _ActionRepeatIntroducer();
@@ -80,4 +80,3 @@ namespace Microsoft::Console::VirtualTerminal
         std::vector<std::vector<til::color>> _data;
     };
 }
-

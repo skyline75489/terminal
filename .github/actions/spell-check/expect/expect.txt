@@ -522,6 +522,11 @@ DECCKM
 DECCOLM
 DECEKBD
 decf
+DECGCI
+DECGCR
+DECGNL
+DECGRA
+DECGRI
 DECKPAM
 DECKPM
 DECKPNM
@@ -2808,6 +2813,7 @@ xor
 Xpath
 XPosition
 XResource
+xrgb
 xsd
 xsi
 xsize

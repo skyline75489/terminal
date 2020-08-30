@@ -43,4 +43,3 @@ class SixelParserTest final
         VERIFY_ARE_EQUAL(row0.at(2), SIXEL_BLUE);
     }
 };
-

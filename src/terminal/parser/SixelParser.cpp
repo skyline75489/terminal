@@ -7,7 +7,6 @@ using namespace Microsoft::Console::VirtualTerminal;
 constexpr uint8_t MAX_PARAMETER_VALUE = 32767ui8;
 constexpr uint8_t SIXEL_MAX_PALETTE = 256ui8;
 
-
 static til::color sixelDefaultColorTable[] = {
     til::color::from_xrgb(0, 0, 0), /*  0 Black    */
     til::color::from_xrgb(20, 20, 80), /*  1 Blue     */
@@ -115,8 +114,8 @@ std::vector<std::vector<til::color>>& SixelParser::GetBitmapData()
     return _data;
 }
 
-void SixelParser::_PrepareParemeters(const gsl::span<const size_t> parameters)
-    {
+void SixelParser::_PrepareParameters(const gsl::span<const size_t> parameters)
+{
     if (parameters.empty())
     {
         return;
@@ -370,7 +369,7 @@ void SixelParser::_ActionDataString(const wchar_t wch)
 }
 
 void SixelParser::_ActionRepeatIntroducer()
-    {
+{
     if (_parameters.size() > 0)
     {
         _repeatCount = _parameters.at(0);
@@ -380,7 +379,7 @@ void SixelParser::_ActionRepeatIntroducer()
 }
 
 void SixelParser::_ActionColorIntroducer()
-    {
+{
     auto params = _parameters;
 
     if (params.size() > 0)
@@ -422,7 +421,7 @@ void SixelParser::_ActionRasterAttribute()
 }
 
 void SixelParser::_AccumulateTo(const wchar_t wch, size_t& value) noexcept
-    {
+{
     const size_t digit = wch - L'0';
 
     value = value * 10 + digit;
@@ -444,7 +443,7 @@ void SixelParser::_Resize(size_t width, size_t height)
 
     if (width >= _width)
     {
-        for (auto &row : _data)
+        for (auto& row : _data)
         {
             row.resize(width);
         }
