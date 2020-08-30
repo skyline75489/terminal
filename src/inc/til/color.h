@@ -239,7 +239,7 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
             return wss.str();
         }
 
-        uint8_t to_uint() const
+        uint32_t to_uint() const
         {
             return (((r) << 16) + ((g) << 8) + (b));
         }

@@ -60,6 +60,15 @@ static constexpr bool _isNumericParamValue(const wchar_t wch) noexcept
     return wch >= L'0' && wch <= L'9'; // 0x30 - 0x39
 }
 
+static constexpr bool _isControlCharacter(const wchar_t wch) noexcept
+{
+    return wch == SixelControlCodes::DECGCI_GraphicsColorIntroducer ||
+           wch == SixelControlCodes::DECGCR_GraphicsCarriageReturn ||
+           wch == SixelControlCodes::DECGNL_GraphicsNewLine ||
+           wch == SixelControlCodes::DECGRA_SetRasterAttributes ||
+           wch == SixelControlCodes::DECGRI_GraphicsRepeatIntroducer;
+}
+
 SixelParser::SixelParser(std::wstring_view data) :
     _attrPad(1),
     _attrPan(2),
@@ -71,6 +80,8 @@ SixelParser::SixelParser(std::wstring_view data) :
     _maxY(0),
     _width(0),
     _height(0),
+    _state(SixelStates::DataString),
+    _parameters({}),
     _palette({}),
     _data({})
 {
@@ -89,6 +100,8 @@ SixelParser::SixelParser(const gsl::span<const size_t> parameters, std::wstring_
     _maxY(0),
     _width(0),
     _height(0),
+    _state(SixelStates::DataString),
+    _parameters({}),
     _palette({}),
     _data({})
 {
@@ -97,8 +110,13 @@ SixelParser::SixelParser(const gsl::span<const size_t> parameters, std::wstring_
     _Parse(data);
 }
 
-void SixelParser::_PrepareParemeters(const gsl::span<const size_t> parameters)
+std::vector<std::vector<til::color>>& SixelParser::GetBitmapData()
 {
+    return _data;
+}
+
+void SixelParser::_PrepareParemeters(const gsl::span<const size_t> parameters)
+    {
     if (parameters.empty())
     {
         return;
@@ -204,197 +222,216 @@ void SixelParser::_Parse(std::wstring_view data)
     while (it != end)
     {
         const wchar_t wch = *it;
-
-        switch (wch)
-        {
-        case SixelControlCodes::GraphicsRepeatIntroducer:
-        {
-            _repeatCount = 1;
-            auto params = _AccumulateParameters(++it, end);
-            _repeatCount = params.at(0);
-            continue;
-        }
-        case SixelControlCodes::ColorIntroducer:
-        {
-            _colorIndex = 0;
-            auto params = _AccumulateParameters(++it, end);
-            _colorIndex = params.at(0);
-
-            // Custom palette
-            if (params.size() > 4)
-            {
-                const auto pu = params.at(1);
-                const auto px = static_cast<uint16_t>(params.at(2));
-                const auto py = static_cast<uint8_t>(params.at(3));
-                const auto pz = static_cast<uint8_t>(params.at(4));
-
-                if (pu == 1)
-                {
-                    _palette.at(_colorIndex) = til::color::from_hsl(
-                        std::min<uint16_t>(px, 360ui16),
-                        std::min<uint8_t>(py, 100ui8),
-                        std::min<uint8_t>(pz, 100ui8),
-                        255);
-                }
-
-                if (pu == 2)
-                {
-                    _palette.at(_colorIndex) = til::color::from_xrgb(
-                        std::min<uint8_t>(static_cast<uint8_t>(px), 100ui8),
-                        std::min<uint8_t>(py, 100ui8),
-                        std::min<uint8_t>(pz, 100ui8));
-                }
-            }
-            continue;
-        }
-        case SixelControlCodes::GraphicsCarriageReturn:
-        {
-            _posX = 0;
-            ++it;
-            continue;
-        }
-        case SixelControlCodes::GraphicsNewLine:
-        {
-            _posX = 0;
-            _posY += 6;
-            ++it;
-            continue;
-        }
-        case SixelControlCodes::RasterAttributes:
-        {
-            auto params = _AccumulateParameters(++it, end);
-            _attrPad = params.at(0);
-            continue;
-        }
-        default:
-        {
-            break;
-        }
-        }
-
-        if (_isDataStringCharacter(wch))
-        {
-            auto sx = _width;
-            while (sx < _posX + _repeatCount)
-            {
-                sx *= 2;
-            }
-
-            auto sy = _height;
-            while (sy < _posY + 6)
-            {
-                sy *= 2;
-            }
-
-            if (sx > _width || sy > _height)
-            {
-                _Resize(sx, sy);
-            }
-
-            const auto bits = wch - L'?';
-
-            if (bits == 0)
-            {
-                _posX += _repeatCount;
-            }
-            else
-            {
-                auto sixel_vertical_mask = 0x01;
-                if (_repeatCount <= 1)
-                {
-                    for (auto i = 0; i < 6; i++)
-                    {
-                        if ((bits & sixel_vertical_mask) != 0)
-                        {
-                            _data.at(_posY + i).at(_posX) = _palette.at(_colorIndex);
-                            _maxX = std::max(_maxX, _posX);
-                            _maxY = std::max(_maxY, _posY + 1);
-                        }
-                        sixel_vertical_mask <<= 1;
-                    }
-
-                    _posX += 1;
-                }
-                else
-                {
-                    /* context->repeat_count > 1 */
-                    for (auto i = 0; i < 6; i++)
-                    {
-                        if ((bits & sixel_vertical_mask) != 0)
-                        {
-                            auto c = sixel_vertical_mask << 1;
-                            auto n = 1;
-                            for (; (i + n) < 6; n++)
-                            {
-                                if ((bits & c) == 0)
-                                {
-                                    break;
-                                }
-                                c <<= 1;
-                            }
-                            for (auto y = _posY + i; y < _posY + i + n; ++y)
-                            {
-                                const auto start = std::next(_data.at(y).begin(), _posX);
-                                const auto cend = start + _repeatCount;
-                                std::fill(start, cend, _palette.at(_colorIndex));
-                            }
-                            _maxX = std::max(_maxX, _posX + _repeatCount - 1);
-                            _maxY = std::max(_maxY, _posY + i + n - 1);
-                            i += (n - 1);
-                            sixel_vertical_mask <<= (n - 1);
-                        }
-                        sixel_vertical_mask <<= 1;
-                    }
-                    _posX += _repeatCount;
-                }
-            }
-
-            _repeatCount = 1;
-
-            it++;
-        }
+        ProcessCharacter(wch);
+        it++;
     }
 
     _width = _height;
 }
 
-std::vector<size_t> SixelParser::_AccumulateParameters(std::wstring_view::const_iterator& it, std::wstring_view::const_iterator end) noexcept
+void SixelParser::_ActionControlCharacter(const wchar_t wch)
 {
-    std::vector<size_t> result;
-    size_t value = 0;
-
-    while (it != end)
+    switch (wch)
     {
-        const wchar_t wch = *it;
+    case SixelControlCodes::DECGRI_GraphicsRepeatIntroducer:
+    {
+        _repeatCount = 1;
+        return _EnterRepeatIntroducer();
+    }
+    case SixelControlCodes::DECGCI_GraphicsColorIntroducer:
+    {
+        _colorIndex = 0;
+        return _EnterColorIntroducer();
+    }
+    case SixelControlCodes::DECGRA_SetRasterAttributes:
+    {
+        return _EnterRasterAttributes();
+    }
+    case SixelControlCodes::DECGCR_GraphicsCarriageReturn:
+    {
+        _posX = 0;
+        return;
+    }
+    case SixelControlCodes::DECGNL_GraphicsNewLine:
+    {
+        _posX = 0;
+        _posY += 6;
+        return;
+    }
+    }
+}
 
-        if (_isParameterDelimiter(wch))
-        {
-            result.emplace_back(value);
-            value = 0;
-            it++;
-            continue;
-        }
-
-        if (!_isNumericParamValue(wch))
-        {
-            result.emplace_back(value);
-            return result;
-        }
-
-        const auto digit = wch - L'0';
-
-        value = value * 10 + digit;
-
-        // Values larger than the maximum should be mapped to the largest supported value.
-        if (value > MAX_PARAMETER_VALUE)
-        {
-            value = MAX_PARAMETER_VALUE;
-        }
-
-        it++;
+void SixelParser::_ActionParam(const wchar_t wch)
+{
+    // If we have no parameters and we're about to add one, get the 0 value ready here.
+    if (_parameters.empty())
+    {
+        _parameters.push_back(0);
     }
 
-    return result;
+    // On a delimiter, increase the number of params we've seen.
+    // "Empty" params should still count as a param -
+    //      eg "\x1b[0;;m" should be three "0" params
+    if (wch == L';')
+    {
+        // Move to next param.
+        _parameters.push_back(0);
+    }
+    else
+    {
+        // Accumulate the character given into the last (current) parameter
+        _AccumulateTo(wch, _parameters.back());
+    }
+}
+
+void SixelParser::_ActionIgnore() noexcept
+{
+    // Do nothing.
+}
+
+void SixelParser::_ActionDataString(const wchar_t wch)
+{
+    auto sx = _width;
+    while (sx < _posX + _repeatCount)
+    {
+        sx *= 2;
+    }
+
+    auto sy = _height;
+    while (sy < _posY + 6)
+    {
+        sy *= 2;
+    }
+
+    if (sx > _width || sy > _height)
+    {
+        _Resize(sx, sy);
+    }
+
+    const auto bits = wch - L'?';
+
+    if (bits == 0)
+    {
+        _posX += _repeatCount;
+    }
+    else
+    {
+        auto sixel_vertical_mask = 0x01;
+        if (_repeatCount <= 1)
+        {
+            for (auto i = 0; i < 6; i++)
+            {
+                if ((bits & sixel_vertical_mask) != 0)
+                {
+                    _data.at(_posY + i).at(_posX) = _palette.at(_colorIndex);
+                    _maxX = std::max(_maxX, _posX);
+                    _maxY = std::max(_maxY, _posY + 1);
+                }
+                sixel_vertical_mask <<= 1;
+            }
+
+            _posX += 1;
+        }
+        else
+        {
+            /* context->repeat_count > 1 */
+            for (auto i = 0; i < 6; i++)
+            {
+                if ((bits & sixel_vertical_mask) != 0)
+                {
+                    auto c = sixel_vertical_mask << 1;
+                    auto n = 1;
+                    for (; (i + n) < 6; n++)
+                    {
+                        if ((bits & c) == 0)
+                        {
+                            break;
+                        }
+                        c <<= 1;
+                    }
+                    for (auto y = _posY + i; y < _posY + i + n; ++y)
+                    {
+                        const auto start = std::next(_data.at(y).begin(), _posX);
+                        const auto cend = start + _repeatCount;
+                        std::fill(start, cend, _palette.at(_colorIndex));
+                    }
+                    _maxX = std::max(_maxX, _posX + _repeatCount - 1);
+                    _maxY = std::max(_maxY, _posY + i + n - 1);
+                    i += (n - 1);
+                    sixel_vertical_mask <<= (n - 1);
+                }
+                sixel_vertical_mask <<= 1;
+            }
+            _posX += _repeatCount;
+        }
+    }
+
+    _repeatCount = 1;
+}
+
+void SixelParser::_ActionRepeatIntroducer()
+    {
+    if (_parameters.size() > 0)
+    {
+        _repeatCount = _parameters.at(0);
+    }
+
+    _parameters.clear();
+}
+
+void SixelParser::_ActionColorIntroducer()
+    {
+    auto params = _parameters;
+
+    if (params.size() > 0)
+    {
+        _colorIndex = params.at(0);
+    }
+
+    if (params.size() > 4)
+    {
+        const auto pu = params.at(1);
+        const auto px = static_cast<uint16_t>(params.at(2));
+        const auto py = static_cast<uint8_t>(params.at(3));
+        const auto pz = static_cast<uint8_t>(params.at(4));
+
+        if (pu == 1)
+        {
+            _palette.at(_colorIndex) = til::color::from_hsl(
+                std::min<uint16_t>(px, 360ui16),
+                std::min<uint8_t>(py, 100ui8),
+                std::min<uint8_t>(pz, 100ui8),
+                255);
+        }
+
+        if (pu == 2)
+        {
+            _palette.at(_colorIndex) = til::color::from_xrgb(
+                std::min<uint8_t>(static_cast<uint8_t>(px), 100ui8),
+                std::min<uint8_t>(py, 100ui8),
+                std::min<uint8_t>(pz, 100ui8));
+        }
+    }
+
+    _parameters.clear();
+}
+
+void SixelParser::_ActionRasterAttribute()
+{
+    _parameters.clear();
+}
+
+void SixelParser::_AccumulateTo(const wchar_t wch, size_t& value) noexcept
+    {
+    const size_t digit = wch - L'0';
+
+    value = value * 10 + digit;
+
+    // Values larger than the maximum should be mapped to the largest supported value.
+    if (value > MAX_PARAMETER_VALUE)
+    {
+        value = MAX_PARAMETER_VALUE;
+    }
 }
 
 void SixelParser::_Resize(size_t width, size_t height)
@@ -412,5 +449,120 @@ void SixelParser::_Resize(size_t width, size_t height)
             row.resize(width);
         }
         _width = width;
+    }
+}
+
+void SixelParser::ProcessCharacter(const wchar_t wch)
+{
+    switch (_state)
+    {
+    case SixelStates::DataString:
+        return _EventDataString(wch);
+    case SixelStates::RepeatIntroducer:
+        return _EventRepeatIntroducer(wch);
+    case SixelStates::RasterAttributes:
+        return _EventRasterAttributes(wch);
+    case SixelStates::ColorIntroducer:
+        return _EventColorIntroducer(wch);
+    }
+}
+
+void SixelParser::_EnterDataString()
+{
+    _state = SixelStates::DataString;
+}
+
+void SixelParser::_EnterRepeatIntroducer()
+{
+    _state = SixelStates::RepeatIntroducer;
+}
+
+void SixelParser::_EnterRasterAttributes()
+{
+    _state = SixelStates::RasterAttributes;
+}
+
+void SixelParser::_EnterColorIntroducer()
+{
+    _state = SixelStates::ColorIntroducer;
+}
+
+void SixelParser::_EventDataString(const wchar_t wch)
+{
+    if (_isControlCharacter(wch))
+    {
+        _ActionControlCharacter(wch);
+    }
+    else if (_isDataStringCharacter(wch))
+    {
+        _ActionDataString(wch);
+    }
+    else
+    {
+        _ActionIgnore();
+    }
+}
+
+void SixelParser::_EventRepeatIntroducer(const wchar_t wch)
+{
+    if (_isNumericParamValue(wch) || _isParameterDelimiter(wch))
+    {
+        _ActionParam(wch);
+    }
+    else if (_isDataStringCharacter(wch))
+    {
+        _ActionRepeatIntroducer();
+        _EnterDataString();
+        _EventDataString(wch);
+    }
+    else
+    {
+        _ActionIgnore();
+    }
+}
+
+void SixelParser::_EventRasterAttributes(const wchar_t wch)
+{
+    if (_isControlCharacter(wch))
+    {
+        _ActionRasterAttribute();
+        _ActionControlCharacter(wch);
+    }
+    else if (_isNumericParamValue(wch) || _isParameterDelimiter(wch))
+    {
+        _ActionParam(wch);
+    }
+    else if (_isDataStringCharacter(wch))
+    {
+        _ActionRasterAttribute();
+        _EnterDataString();
+        _EventDataString(wch);
+    }
+    else
+    {
+        _ActionIgnore();
+    }
+}
+
+void SixelParser::_EventColorIntroducer(const wchar_t wch)
+{
+    if (_isControlCharacter(wch))
+    {
+        _ActionColorIntroducer();
+        _ActionControlCharacter(wch);
+    }
+    else if (_isNumericParamValue(wch) || _isParameterDelimiter(wch))
+    {
+        _ActionParam(wch);
+    }
+    else if (_isDataStringCharacter(wch))
+    {
+        _ActionColorIntroducer();
+        _EnterDataString();
+        _EventDataString(wch);
+    }
+    else
+    {
+        _ActionIgnore();
     }
 }
