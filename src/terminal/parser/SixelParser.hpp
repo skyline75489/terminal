@@ -28,10 +28,10 @@ namespace Microsoft::Console::VirtualTerminal
         SixelParser(std::wstring_view data);
         SixelParser(const gsl::span<const size_t> parameters, std::wstring_view data);
 
-        std::vector<std::vector<til::color>>& GetBitmapData();
+        std::vector<std::vector<til::color>>& GetBitmapData() noexcept;
 
     private:
-        void _PrepareParameters(const gsl::span<const size_t> parameters);
+        void _PrepareParameters(const gsl::span<const size_t> parameters) noexcept;
         void _Parse(std::wstring_view data);
         void _InitPalette();
         void _AccumulateTo(const wchar_t wch, size_t& value) noexcept;
@@ -39,19 +39,19 @@ namespace Microsoft::Console::VirtualTerminal
 
         void ProcessCharacter(const wchar_t wch);
 
-        void _ActionControlCharacter(const wchar_t wch);
+        void _ActionControlCharacter(const wchar_t wch) noexcept;
         void _ActionParam(const wchar_t wch);
         ;
         void _ActionIgnore() noexcept;
         void _ActionDataString(const wchar_t wch);
         void _ActionRepeatIntroducer();
-        void _ActionRasterAttribute();
+        void _ActionRasterAttribute() noexcept;
         void _ActionColorIntroducer();
 
-        void _EnterDataString();
-        void _EnterRepeatIntroducer();
-        void _EnterRasterAttributes();
-        void _EnterColorIntroducer();
+        void _EnterDataString() noexcept; 
+        void _EnterRepeatIntroducer() noexcept;
+        void _EnterRasterAttributes() noexcept;
+        void _EnterColorIntroducer() noexcept;
 
         void _EventDataString(const wchar_t wch);
         void _EventRepeatIntroducer(const wchar_t wch);

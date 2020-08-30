@@ -861,17 +861,8 @@ bool OutputStateMachineEngine::ActionSs3Dispatch(const wchar_t /*wch*/,
 // - string - data string we've collected. NOT null terminated.
 // Return Value:
 // - true iff the final character is valid.
-bool OutputStateMachineEngine::ActionDcsDispatch(const VTID id, const gsl::span<const size_t> parameters, const std::wstring_view data)
+bool OutputStateMachineEngine::ActionDcsDispatch(const VTID /*id*/, const gsl::span<const size_t> /*parameters*/, const std::wstring_view /*data*/)
 {
-    switch (id)
-    {
-    case DcsActionCodes::DECSIXEL_Sixel:
-    {
-        SixelParser(parameters, data);
-    }
-        return true;
-    }
-
     return false;
 };
 

@@ -7,25 +7,6 @@ using namespace Microsoft::Console::VirtualTerminal;
 constexpr uint8_t MAX_PARAMETER_VALUE = 32767ui8;
 constexpr uint8_t SIXEL_MAX_PALETTE = 256ui8;
 
-static til::color sixelDefaultColorTable[] = {
-    til::color::from_xrgb(0, 0, 0), /*  0 Black    */
-    til::color::from_xrgb(20, 20, 80), /*  1 Blue     */
-    til::color::from_xrgb(80, 13, 13), /*  2 Red      */
-    til::color::from_xrgb(20, 80, 20), /*  3 Green    */
-    til::color::from_xrgb(80, 20, 80), /*  4 Magenta  */
-    til::color::from_xrgb(20, 80, 80), /*  5 Cyan     */
-    til::color::from_xrgb(80, 80, 20), /*  6 Yellow   */
-    til::color::from_xrgb(53, 53, 53), /*  7 Gray 50% */
-    til::color::from_xrgb(26, 26, 26), /*  8 Gray 25% */
-    til::color::from_xrgb(33, 33, 60), /*  9 Blue*    */
-    til::color::from_xrgb(60, 26, 26), /* 10 Red*     */
-    til::color::from_xrgb(33, 60, 33), /* 11 Green*   */
-    til::color::from_xrgb(60, 33, 60), /* 12 Magenta* */
-    til::color::from_xrgb(33, 60, 60), /* 13 Cyan*    */
-    til::color::from_xrgb(60, 60, 33), /* 14 Yellow*  */
-    til::color::from_xrgb(80, 80, 80), /* 15 Gray 75% */
-};
-
 // Routine Description:
 // - Determines if a character is a delimiter between two parameters in a "control sequence".
 // Arguments:
@@ -104,17 +85,17 @@ SixelParser::SixelParser(const gsl::span<const size_t> parameters, std::wstring_
     _palette({}),
     _data({})
 {
-    _PrepareParemeters(parameters);
+    _PrepareParameters(parameters);
     _InitPalette();
     _Parse(data);
 }
 
-std::vector<std::vector<til::color>>& SixelParser::GetBitmapData()
+std::vector<std::vector<til::color>>& SixelParser::GetBitmapData() noexcept
 {
     return _data;
 }
 
-void SixelParser::_PrepareParameters(const gsl::span<const size_t> parameters)
+void SixelParser::_PrepareParameters(const gsl::span<const size_t> parameters) noexcept
 {
     if (parameters.empty())
     {
@@ -179,12 +160,31 @@ void SixelParser::_PrepareParameters(const gsl::span<const size_t> parameters)
 
 void SixelParser::_InitPalette()
 {
+    static std::array<til::color, 16> sixelDefaultColorTable = {
+        til::color::from_xrgb(0, 0, 0),    /*  0 Black    */
+        til::color::from_xrgb(20, 20, 80), /*  1 Blue     */
+        til::color::from_xrgb(80, 13, 13), /*  2 Red      */
+        til::color::from_xrgb(20, 80, 20), /*  3 Green    */
+        til::color::from_xrgb(80, 20, 80), /*  4 Magenta  */
+        til::color::from_xrgb(20, 80, 80), /*  5 Cyan     */
+        til::color::from_xrgb(80, 80, 20), /*  6 Yellow   */
+        til::color::from_xrgb(53, 53, 53), /*  7 Gray 50% */
+        til::color::from_xrgb(26, 26, 26), /*  8 Gray 25% */
+        til::color::from_xrgb(33, 33, 60), /*  9 Blue*    */
+        til::color::from_xrgb(60, 26, 26), /* 10 Red*     */
+        til::color::from_xrgb(33, 60, 33), /* 11 Green*   */
+        til::color::from_xrgb(60, 33, 60), /* 12 Magenta* */
+        til::color::from_xrgb(33, 60, 60), /* 13 Cyan*    */
+        til::color::from_xrgb(60, 60, 33), /* 14 Yellow*  */
+        til::color::from_xrgb(80, 80, 80), /* 15 Gray 75% */
+    };
+
     uint8_t n = 0;
 
     /* palette initialization */
     for (; n < 16; n++)
     {
-        _palette.emplace_back(sixelDefaultColorTable[n]);
+        _palette.emplace_back(sixelDefaultColorTable.at(n));
     }
 
     /* colors 16-231 are a 6x6x6 color cube */
@@ -228,7 +228,7 @@ void SixelParser::_Parse(std::wstring_view data)
     _width = _height;
 }
 
-void SixelParser::_ActionControlCharacter(const wchar_t wch)
+void SixelParser::_ActionControlCharacter(const wchar_t wch) noexcept
 {
     switch (wch)
     {
@@ -257,6 +257,8 @@ void SixelParser::_ActionControlCharacter(const wchar_t wch)
         _posY += 6;
         return;
     }
+    default:
+        return;
     }
 }
 
@@ -415,7 +417,7 @@ void SixelParser::_ActionColorIntroducer()
     _parameters.clear();
 }
 
-void SixelParser::_ActionRasterAttribute()
+void SixelParser::_ActionRasterAttribute() noexcept
 {
     _parameters.clear();
 }
@@ -466,27 +468,27 @@ void SixelParser::ProcessCharacter(const wchar_t wch)
     }
 }
 
-void SixelParser::_EnterDataString()
+void SixelParser::_EnterDataString() noexcept
 {
     _state = SixelStates::DataString;
 }
 
-void SixelParser::_EnterRepeatIntroducer()
+void SixelParser::_EnterRepeatIntroducer() noexcept
 {
     _state = SixelStates::RepeatIntroducer;
 }
 
-void SixelParser::_EnterRasterAttributes()
+void SixelParser::_EnterRasterAttributes() noexcept
 {
     _state = SixelStates::RasterAttributes;
 }
 
-void SixelParser::_EnterColorIntroducer()
+void SixelParser::_EnterColorIntroducer() noexcept
 {
     _state = SixelStates::ColorIntroducer;
 }
 
-void SixelParser::_EventDataString(const wchar_t wch)
+void SixelParser::_EventDataString(const wchar_t wch) 
 {
     if (_isControlCharacter(wch))
     {

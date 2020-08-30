@@ -237,11 +237,6 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
             return wss.str();
         }
 
-        uint32_t to_uint() const
-        {
-            return (((r) << 16) + ((g) << 8) + (b));
-        }
-
         std::wstring ToHexString(const bool omitAlpha = false) const
         {
             std::wstringstream wss;
