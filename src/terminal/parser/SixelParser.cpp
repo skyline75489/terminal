@@ -50,9 +50,11 @@ static constexpr bool _isControlCharacter(const wchar_t wch) noexcept
 }
 
 SixelParser::SixelParser(std::wstring_view data) :
-    _attrPad(1),
-    _attrPan(2),
-    _repeatCount(1),
+    _attrPixalDenominator(1),
+    _attrPixelNumerator(2),
+    _attrHorizontalSize(0),
+    _attrVerticalSize(0),
+    _repeatCount(0),
     _colorIndex(0),
     _posX(0),
     _posY(0),
@@ -70,8 +72,10 @@ SixelParser::SixelParser(std::wstring_view data) :
 }
 
 SixelParser::SixelParser(const gsl::span<const size_t> parameters, std::wstring_view data) :
-    _attrPad(1),
-    _attrPan(2),
+    _attrPixalDenominator(1),
+    _attrPixelNumerator(2),
+    _attrHorizontalSize(0),
+    _attrVerticalSize(0),
     _repeatCount(1),
     _colorIndex(0),
     _posX(0),
@@ -108,52 +112,29 @@ void SixelParser::_PrepareParameters(const gsl::span<const size_t> parameters) n
         {
         case 0:
         case 1:
-            _attrPad = 2;
+            _attrPixelNumerator = 2;
             break;
         case 2:
-            _attrPad = 5;
+            _attrPixelNumerator = 5;
             break;
         case 3:
         case 4:
-            _attrPad = 4;
+            _attrPixelNumerator = 4;
             break;
         case 5:
         case 6:
-            _attrPad = 3;
+            _attrPixelNumerator = 3;
             break;
         case 7:
         case 8:
-            _attrPad = 2;
+            _attrPixelNumerator = 2;
             break;
         case 9:
-            _attrPad = 1;
+            _attrPixelNumerator = 1;
             break;
         default:
-            _attrPad = 2;
+            _attrPixelNumerator = 2;
             break;
-        }
-    }
-
-    size_t pn3 = 0;
-
-    if (parameters.size() >= 3)
-    {
-        pn3 = parameters[2];
-        if (pn3 == 0)
-        {
-            pn3 = 10;
-        }
-
-        _attrPan = _attrPan * pn3 / 10;
-        _attrPad = _attrPad * pn3 / 10;
-
-        if (_attrPan <= 0)
-        {
-            _attrPan = 1;
-        }
-        if (_attrPad <= 0)
-        {
-            _attrPad = 1;
         }
     }
 }
@@ -419,6 +400,25 @@ void SixelParser::_ActionColorIntroducer()
 
 void SixelParser::_ActionRasterAttribute() noexcept
 {
+    auto params = _parameters;
+
+    if (params.size() > 0)
+    {
+        _attrPixelNumerator = params.at(0);
+    }
+    if (params.size() > 1)
+    {
+        _attrPixalDenominator = params.at(1);
+    }
+    if (params.size() > 2)
+    {
+        _attrHorizontalSize = params.at(2);
+    }
+    if (params.size() > 3)
+    {
+        _attrHorizontalSize = params.at(3);
+    }
+
     _parameters.clear();
 }
 
