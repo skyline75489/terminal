@@ -48,7 +48,7 @@ namespace Microsoft::Console::VirtualTerminal
         void _ActionRasterAttribute() noexcept;
         void _ActionColorIntroducer();
 
-        void _EnterDataString() noexcept; 
+        void _EnterDataString() noexcept;
         void _EnterRepeatIntroducer() noexcept;
         void _EnterRasterAttributes() noexcept;
         void _EnterColorIntroducer() noexcept;

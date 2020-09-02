@@ -142,7 +142,7 @@ void SixelParser::_PrepareParameters(const gsl::span<const size_t> parameters) n
 void SixelParser::_InitPalette()
 {
     static std::array<til::color, 16> sixelDefaultColorTable = {
-        til::color::from_xrgb(0, 0, 0),    /*  0 Black    */
+        til::color::from_xrgb(0, 0, 0), /*  0 Black    */
         til::color::from_xrgb(20, 20, 80), /*  1 Blue     */
         til::color::from_xrgb(80, 13, 13), /*  2 Red      */
         til::color::from_xrgb(20, 80, 20), /*  3 Green    */
@@ -299,27 +299,18 @@ void SixelParser::_ActionDataString(const wchar_t wch)
     else
     {
         auto sixel_vertical_mask = 0x01;
-        if (_repeatCount <= 1)
+
+        for (auto i = 0; i < 6; i++)
         {
-            for (auto i = 0; i < 6; i++)
+            if ((bits & sixel_vertical_mask) != 0)
             {
-                if ((bits & sixel_vertical_mask) != 0)
+                if (_repeatCount <= 1)
                 {
                     _data.at(_posY + i).at(_posX) = _palette.at(_colorIndex);
                     _maxX = std::max(_maxX, _posX);
                     _maxY = std::max(_maxY, _posY + 1);
                 }
-                sixel_vertical_mask <<= 1;
-            }
-
-            _posX += 1;
-        }
-        else
-        {
-            /* context->repeat_count > 1 */
-            for (auto i = 0; i < 6; i++)
-            {
-                if ((bits & sixel_vertical_mask) != 0)
+                else
                 {
                     auto c = sixel_vertical_mask << 1;
                     auto n = 1;
@@ -339,13 +330,16 @@ void SixelParser::_ActionDataString(const wchar_t wch)
                     }
                     _maxX = std::max(_maxX, _posX + _repeatCount - 1);
                     _maxY = std::max(_maxY, _posY + i + n - 1);
+
                     i += (n - 1);
                     sixel_vertical_mask <<= (n - 1);
                 }
-                sixel_vertical_mask <<= 1;
             }
-            _posX += _repeatCount;
+
+            sixel_vertical_mask <<= 1;
         }
+
+        _posX += std::max(_repeatCount, 1ull);
     }
 
     _repeatCount = 1;
@@ -382,8 +376,7 @@ void SixelParser::_ActionColorIntroducer()
             _palette.at(_colorIndex) = til::color::from_hsl(
                 std::min<uint16_t>(px, 360ui16),
                 std::min<uint8_t>(py, 100ui8),
-                std::min<uint8_t>(pz, 100ui8),
-                255);
+                std::min<uint8_t>(pz, 100ui8));
         }
 
         if (pu == 2)
@@ -488,7 +481,7 @@ void SixelParser::_EnterColorIntroducer() noexcept
     _state = SixelStates::ColorIntroducer;
 }
 
-void SixelParser::_EventDataString(const wchar_t wch) 
+void SixelParser::_EventDataString(const wchar_t wch)
 {
     if (_isControlCharacter(wch))
     {

@@ -91,6 +91,11 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
         constexpr color(const color&) = default;
         constexpr color(color&&) = default;
 
+        static color from_hsl(uint16_t _h, uint8_t _s, uint8_t _l)
+        {
+            return color::from_hsl(_h, _s, _l, 255);
+        }
+
         static color from_hsl(uint16_t _h, uint8_t _s, uint8_t _l, uint8_t _a)
         {
             // Reference: https://chromium.googlesource.com/chromium/src/+/master/ui/gfx/color_utils.cc
