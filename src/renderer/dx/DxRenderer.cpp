@@ -1643,17 +1643,19 @@ CATCH_RETURN()
     const auto resetColorOnExit = wil::scope_exit([&]() noexcept { _d2dBrushForeground->SetColor(existingColor); });
 
     D2D1_RECT_F draw = til::rectangle{ Viewport::FromCoord(coordTarget).ToInclusive() }.scale_up(_glyphCell);
+    FLOAT delta = draw.right - draw.left;
     for (auto row : data)
     {
         for (auto color : row)
         {
-            auto foregroundColor = _ColorFFromColorRef(OPACITY_OPAQUE | color);
+            auto foregroundColor = color == 0 ? _defaultBackgroundColor : _ColorFFromColorRef((OPACITY_OPAQUE | color));
             _d2dBrushForeground->SetColor(foregroundColor);
             _d2dDeviceContext->FillRectangle(draw, _d2dBrushForeground.Get());
             draw.left++;
             draw.right++;
         }
         draw.left = 0;
+        draw.right = delta;
         draw.top++;
         draw.bottom++;
     }
