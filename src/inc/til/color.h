@@ -7,29 +7,6 @@
 
 namespace til // Terminal Implementation Library. Also: "Today I Learned"
 {
-    constexpr uint8_t ClampRound(float value)
-    {
-        const float rounded =
-            (value >= 0.0f) ? std::floor(value + 0.5f) : std::ceil(value - 0.5f);
-        return base::saturated_cast<uint8_t>(rounded);
-    }
-
-    constexpr uint8_t calcHue(float temp1, float temp2, float hue)
-    {
-        if (hue < 0.0f)
-            ++hue;
-        else if (hue > 1.0f)
-            --hue;
-        float result = temp1;
-        if (hue * 6.0f < 1.0f)
-            result = temp1 + (temp2 - temp1) * hue * 6.0f;
-        else if (hue * 2.0f < 1.0f)
-            result = temp2;
-        else if (hue * 3.0f < 2.0f)
-            result = temp1 + (temp2 - temp1) * (2.0f / 3.0f - hue) * 6.0f;
-        return ClampRound(result * 255);
-    }
-
     constexpr uint8_t pavVal(uint8_t n, uint8_t a, uint8_t m)
     {
         return ((n) * (a) + ((m) / 2)) / (m);
@@ -90,37 +67,6 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
 
         constexpr color(const color&) = default;
         constexpr color(color&&) = default;
-
-        static color from_hsl(uint16_t _h, uint8_t _s, uint8_t _l)
-        {
-            return color::from_hsl(_h, _s, _l, 255);
-        }
-
-        static color from_hsl(uint16_t _h, uint8_t _s, uint8_t _l, uint8_t _a)
-        {
-            // Reference: https://chromium.googlesource.com/chromium/src/+/master/ui/gfx/color_utils.cc
-
-            const float hue = _h;
-            const float saturation = _s;
-            const float lightness = _l;
-
-            // If there's no color, we don't care about hue and can do everything based on
-            // brightness.
-            if (!saturation)
-            {
-                const uint8_t light = ClampRound(lightness * 255);
-                return color(light, light, light, _a);
-            }
-
-            const float temp2 = (lightness < 0.5f) ? (lightness * (1.0f + saturation)) : (lightness + saturation - (lightness * saturation));
-            const float temp1 = 2.0f * lightness - temp2;
-
-            return color(
-                calcHue(temp1, temp2, hue + 1.0f / 3.0f),
-                calcHue(temp1, temp2, hue),
-                calcHue(temp1, temp2, hue - 1.0f / 3.0f),
-                _a);
-        }
 
         static color from_xrgb(uint8_t _r, uint8_t _g, uint8_t _b)
         {

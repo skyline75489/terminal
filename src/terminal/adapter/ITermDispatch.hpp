@@ -29,7 +29,7 @@ public:
     virtual void Execute(const wchar_t wchControl) = 0;
     virtual void Print(const wchar_t wchPrintable) = 0;
     virtual void PrintString(const std::wstring_view string) = 0;
-
+    virtual bool PrintPixels(const std::vector<std::vector<COLORREF>> &data, bool exclusive) = 0;
     virtual bool CursorUp(const size_t distance) = 0; // CUU
     virtual bool CursorDown(const size_t distance) = 0; // CUD
     virtual bool CursorForward(const size_t distance) = 0; // CUF

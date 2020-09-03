@@ -94,7 +94,7 @@ SixelParser::SixelParser(const gsl::span<const size_t> parameters, std::wstring_
     _Parse(data);
 }
 
-std::vector<std::vector<til::color>>& SixelParser::GetBitmapData() noexcept
+std::vector<std::vector<COLORREF>>& SixelParser::GetBitmapData() noexcept
 {
     return _data;
 }
@@ -373,10 +373,7 @@ void SixelParser::_ActionColorIntroducer()
 
         if (pu == 1)
         {
-            _palette.at(_colorIndex) = til::color::from_hsl(
-                std::min<uint16_t>(px, 360ui16),
-                std::min<uint8_t>(py, 100ui8),
-                std::min<uint8_t>(pz, 100ui8));
+            // TODO: HSL color
         }
 
         if (pu == 2)
@@ -409,7 +406,7 @@ void SixelParser::_ActionRasterAttribute() noexcept
     }
     if (params.size() > 3)
     {
-        _attrHorizontalSize = params.at(3);
+        _attrVerticalSize = params.at(3);
     }
 
     _parameters.clear();

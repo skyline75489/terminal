@@ -87,6 +87,11 @@ void AdaptDispatch::PrintString(const std::wstring_view string)
     CATCH_LOG();
 }
 
+bool AdaptDispatch::PrintPixels(const std::vector<std::vector<COLORREF>> &/*data*/, bool /*exclusive*/)
+{
+    return false;
+}
+
 // Routine Description:
 // - CUU - Handles cursor upward movement by given distance.
 // CUU and CUD are handled separately from other CUP sequences, because they are

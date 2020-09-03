@@ -16,6 +16,7 @@ Author(s):
 
 #include "../../host/conimeinfo.h"
 #include "../../buffer/out/TextAttribute.hpp"
+#include "../../buffer/out/PixelStorage.hpp"
 #include "../../types/IBaseData.h"
 
 class Cursor;
@@ -35,6 +36,15 @@ namespace Microsoft::Console::Render
         // Anything outside of this is considered empty by the overlay and shouldn't be used
         // for painting purposes.
         const Microsoft::Console::Types::Viewport region;
+    };
+
+    struct RenderAccessory final
+    {
+        // This is where the top left of the stored buffer should be overlayed on the screen
+        // (relative to the current visible viewport)
+        const COORD origin;
+
+        const std::unique_ptr<PixelRegion>& pixelRegion;
     };
 
     class IRenderData : public Microsoft::Console::Types::IBaseData
@@ -62,6 +72,7 @@ namespace Microsoft::Console::Render
         virtual bool IsScreenReversed() const noexcept = 0;
 
         virtual const std::vector<RenderOverlay> GetOverlays() const noexcept = 0;
+        virtual const std::vector<RenderAccessory> GetAccessories() const noexcept = 0;
 
         virtual const bool IsGridLineDrawingAllowed() noexcept = 0;
         virtual const std::wstring GetConsoleTitle() const noexcept = 0;

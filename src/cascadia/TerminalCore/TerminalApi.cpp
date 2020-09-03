@@ -18,6 +18,17 @@ try
 }
 CATCH_LOG_RETURN_FALSE()
 
+bool Terminal::PrintPixels(const std::vector<std::vector<COLORREF>> &data, bool exclusive) noexcept
+try
+{
+    auto pixelRegion = std::make_unique<PixelRegion>(
+        std::make_unique<std::vector<std::vector<COLORREF>>>(data),
+        exclusive);
+    _buffer->WritePixels(std::move(pixelRegion));
+    return true;
+}
+CATCH_LOG_RETURN_FALSE()
+
 bool Terminal::ExecuteChar(wchar_t wch) noexcept
 try
 {

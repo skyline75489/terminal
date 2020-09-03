@@ -30,11 +30,6 @@ static auto SIXEL_GREEN = til::color::from_xrgb(20, 80, 20);
 
 static auto SIXEL_BACKGROUND = til::color();
 
-constexpr uint8_t sixel_mask(const wchar_t sixelChar)
-{
-    return (sixelChar - L'?') & 0b111111;
-}
-
 class SixelParserTest final
 {
     TEST_CLASS(SixelParserTest);
@@ -157,20 +152,6 @@ class SixelParserTest final
         verify_sixel_row(result, 4, 0, 4, L'N', til::color::from_xrgb(0, 100, 0));
     }
 
-    TEST_METHOD(TestParseColorIntroducerHsl)
-    {
-        SixelParser parser(L"#0;1;0;0;0#1;1;60;100;50#2;1;240;100;50#1!4N#2!4N");
-        auto result = parser.GetBitmapData();
-        auto height = result.size();
-        VERIFY_ARE_EQUAL(height, 8);
-        auto row0 = result.at(0);
-        auto width = row0.size();
-        VERIFY_ARE_EQUAL(width, 8);
-
-        verify_sixel_row(result, 0, 0, 4, L'N', til::color::from_hsl(60, 100, 50));
-        verify_sixel_row(result, 4, 0, 4, L'N', til::color::from_hsl(240, 100, 50));
-    }
-
     void verify_sixel_row(
         std::vector<std::vector<til::color>>& data,
         size_t posX,
@@ -229,5 +210,10 @@ class SixelParserTest final
         {
             VERIFY_ARE_EQUAL(row5.at(posX), color);
         }
+    }
+
+    constexpr uint8_t sixel_mask(const wchar_t sixelChar)
+    {
+        return (sixelChar - L'?') & 0b111111;
     }
 };

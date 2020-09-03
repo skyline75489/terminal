@@ -357,6 +357,11 @@ CATCH_RETURN();
     return S_FALSE;
 }
 
+[[nodiscard]] HRESULT UiaEngine::PaintArbitrayPixels(std::vector<std::vector<COLORREF>>& /*data*/, const COORD /*coordTarget*/) noexcept
+{
+    return S_FALSE;
+}
+
 // Routine Description:
 // - Updates the default brush colors used for drawing
 //  For UIA, this doesn't mean anything. So do nothing.

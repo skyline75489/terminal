@@ -118,6 +118,18 @@ const std::vector<RenderOverlay> Terminal::GetOverlays() const noexcept
     return {};
 }
 
+const std::vector<Microsoft::Console::Render::RenderAccessory> Terminal::GetAccessories() const noexcept
+{
+    std::vector<Microsoft::Console::Render::RenderAccessory> accessories;
+    const auto& cursor = _buffer->GetCursor();
+    const COORD position = cursor.GetPosition();
+    const PixelStorage& storage = _buffer->GetPixelStorage();
+    if (storage.HasData(position)) {
+        accessories.emplace_back(Microsoft::Console::Render::RenderAccessory{ position, storage.GetData(position)  });
+    }
+    return accessories;
+}
+
 const bool Terminal::IsGridLineDrawingAllowed() noexcept
 {
     return true;

@@ -77,6 +77,7 @@ public:
 #pragma region ITerminalApi
     // These methods are defined in TerminalApi.cpp
     bool PrintString(std::wstring_view stringView) noexcept override;
+    bool PrintPixels(const std::vector<std::vector<COLORREF>> &data, bool exclusive) noexcept override;
     bool ExecuteChar(wchar_t wch) noexcept override;
     TextAttribute GetTextAttributes() const noexcept override;
     void SetTextAttributes(const TextAttribute& attrs) noexcept override;
@@ -158,6 +159,8 @@ public:
     bool IsCursorDoubleWidth() const override;
     bool IsScreenReversed() const noexcept override;
     const std::vector<Microsoft::Console::Render::RenderOverlay> GetOverlays() const noexcept override;
+    const std::vector<Microsoft::Console::Render::RenderAccessory> GetAccessories() const noexcept override;
+
     const bool IsGridLineDrawingAllowed() noexcept override;
     const std::wstring GetHyperlinkUri(uint16_t id) const noexcept override;
     const std::wstring GetHyperlinkCustomId(uint16_t id) const noexcept override;

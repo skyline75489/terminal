@@ -863,15 +863,26 @@ bool OutputStateMachineEngine::ActionSs3Dispatch(const wchar_t /*wch*/,
 // - true iff the final character is valid.
 bool OutputStateMachineEngine::ActionDcsDispatch(const VTID id, const gsl::span<const size_t> parameters, const std::wstring_view data)
 {
+    bool success = false;
     switch (id)
     {
     case DcsActionCodes::DECSIXEL_Sixel:
     {
-        SixelParser(parameters, data);
+        auto parser = SixelParser(parameters, data);
+        success = _dispatch->PrintPixels(parser.GetBitmapData(), true);
+        break;
     }
-        return true;
     }
-    return false;
+
+    // If we were unable to process the string, and there's a TTY attached to us,
+    //      trigger the state machine to flush the string to the terminal.
+    if (_pfnFlushToTerminal != nullptr && !success)
+    {
+        success = _pfnFlushToTerminal();
+    }
+
+    _ClearLastChar();
+    return success;
 };
 
 // Routine Description:

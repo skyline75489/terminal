@@ -17,6 +17,7 @@ namespace Microsoft::Terminal::Core
         ITerminalApi& operator=(ITerminalApi&&) = default;
 
         virtual bool PrintString(std::wstring_view string) noexcept = 0;
+        virtual bool PrintPixels(const std::vector<std::vector<COLORREF>> &data, bool exclusive) noexcept = 0;
         virtual bool ExecuteChar(wchar_t wch) noexcept = 0;
 
         virtual TextAttribute GetTextAttributes() const noexcept = 0;

@@ -51,6 +51,7 @@ public:
     bool IsScreenReversed() const noexcept override;
 
     const std::vector<Microsoft::Console::Render::RenderOverlay> GetOverlays() const noexcept override;
+    const std::vector<Microsoft::Console::Render::RenderAccessory> GetAccessories() const noexcept override;
 
     const bool IsGridLineDrawingAllowed() noexcept override;
 

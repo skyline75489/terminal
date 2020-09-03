@@ -33,6 +33,7 @@ TextBuffer::TextBuffer(const COORD screenBufferSize,
     _cursor{ cursorSize, *this },
     _storage{},
     _unicodeStorage{},
+    _pixelStorage{},
     _renderTarget{ renderTarget },
     _size{},
     _currentHyperlinkId{ 1 }
@@ -383,6 +384,22 @@ OutputCellIterator TextBuffer::WriteLine(const OutputCellIterator givenIt,
     _NotifyPaint(paint);
 
     return newIt;
+}
+
+void TextBuffer::WritePixels(std::unique_ptr<PixelRegion> pixelRegion)
+{
+    const auto& cursor = GetCursor();
+    auto target = cursor.GetPosition();
+    target.Y += 1;
+    target.X = 0;
+
+    _pixelStorage.StoreData(target, std::move(pixelRegion));
+}
+
+void TextBuffer::WritePixels(const COORD target,
+                             std::unique_ptr<PixelRegion> pixelRegion)
+{
+    _pixelStorage.StoreData(target, std::move(pixelRegion));
 }
 
 //Routine Description:
@@ -875,6 +892,16 @@ const UnicodeStorage& TextBuffer::GetUnicodeStorage() const noexcept
 UnicodeStorage& TextBuffer::GetUnicodeStorage() noexcept
 {
     return _unicodeStorage;
+}
+
+const PixelStorage& TextBuffer::GetPixelStorage() const noexcept
+{
+    return _pixelStorage;
+}
+
+PixelStorage& TextBuffer::GetPixelStorage() noexcept
+{
+    return _pixelStorage;
 }
 
 // Routine Description:

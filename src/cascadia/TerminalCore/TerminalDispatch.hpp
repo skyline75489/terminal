@@ -12,6 +12,7 @@ public:
     void Execute(const wchar_t wchControl) noexcept override;
     void Print(const wchar_t wchPrintable) noexcept override;
     void PrintString(const std::wstring_view string) noexcept override;
+    bool PrintPixels(const std::vector<std::vector<COLORREF>> &data, bool exclusive) noexcept override;
 
     bool SetGraphicsRendition(const gsl::span<const ::Microsoft::Console::VirtualTerminal::DispatchTypes::GraphicsOptions> options) noexcept override;
 

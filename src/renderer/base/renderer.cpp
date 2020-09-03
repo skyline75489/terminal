@@ -150,6 +150,7 @@ try
 
     // 3. Paint overlays that reside above the text buffer
     _PaintOverlays(pEngine);
+    _PaintAccessories(pEngine);
 
     // 4. Paint Selection
     _PaintSelection(pEngine);
@@ -1063,6 +1064,25 @@ void Renderer::_PaintOverlays(_In_ IRenderEngine* const pEngine)
         }
     }
     CATCH_LOG();
+}
+
+void Renderer::_PaintAccessories(_In_ IRenderEngine* const pEngine)
+{
+    try
+    {
+        const auto accessories = _pData->GetAccessories();
+
+        for (const auto& accessory : accessories)
+        {
+            _PaintAccessory(*pEngine, accessory);
+        }
+    }
+    CATCH_LOG();
+}
+
+void Renderer::_PaintAccessory(IRenderEngine& engine, const RenderAccessory& overlay)
+{
+    LOG_IF_FAILED(engine.PaintArbitrayPixels(*(overlay.pixelRegion.get()->data.get()), overlay.origin));
 }
 
 // Routine Description:

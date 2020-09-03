@@ -28,7 +28,7 @@ namespace Microsoft::Console::VirtualTerminal
         SixelParser(std::wstring_view data);
         SixelParser(const gsl::span<const size_t> parameters, std::wstring_view data);
 
-        std::vector<std::vector<til::color>>& GetBitmapData() noexcept;
+        std::vector<std::vector<COLORREF>>& GetBitmapData() noexcept;
 
     private:
         void _PrepareParameters(const gsl::span<const size_t> parameters) noexcept;
@@ -79,6 +79,6 @@ namespace Microsoft::Console::VirtualTerminal
         std::vector<size_t> _parameters;
 
         std::vector<til::color> _palette;
-        std::vector<std::vector<til::color>> _data;
+        std::vector<std::vector<COLORREF>> _data;
     };
 }

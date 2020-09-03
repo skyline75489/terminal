@@ -30,6 +30,12 @@ void TerminalDispatch::PrintString(const std::wstring_view string) noexcept
     _terminalApi.PrintString(string);
 }
 
+bool TerminalDispatch::PrintPixels(const std::vector<std::vector<COLORREF>> &data, bool exclusive) noexcept
+{
+    _terminalApi.PrintPixels(data, exclusive);
+    return true;
+}
+
 bool TerminalDispatch::CursorPosition(const size_t line,
                                       const size_t column) noexcept
 try

@@ -53,6 +53,7 @@ filling in the last row, and updating the screen.
 #include "Row.hpp"
 #include "TextAttribute.hpp"
 #include "UnicodeStorage.hpp"
+#include "PixelStorage.hpp"
 #include "../types/inc/Viewport.hpp"
 
 #include "../buffer/out/textBufferCellIterator.hpp"
@@ -95,6 +96,10 @@ public:
                                  const std::optional<bool> setWrap = std::nullopt,
                                  const std::optional<size_t> limitRight = std::nullopt);
 
+    void WritePixels(std::unique_ptr<PixelRegion> pixelRegion);
+    void WritePixels(const COORD target,
+                     std::unique_ptr<PixelRegion> pixelRegion);
+
     bool InsertCharacter(const wchar_t wch, const DbcsAttribute dbcsAttribute, const TextAttribute attr);
     bool InsertCharacter(const std::wstring_view chars, const DbcsAttribute dbcsAttribute, const TextAttribute attr);
     bool IncrementCursor();
@@ -126,6 +131,9 @@ public:
 
     const UnicodeStorage& GetUnicodeStorage() const noexcept;
     UnicodeStorage& GetUnicodeStorage() noexcept;
+
+    const PixelStorage& GetPixelStorage() const noexcept;
+    PixelStorage& GetPixelStorage() noexcept;
 
     Microsoft::Console::Render::IRenderTarget& GetRenderTarget() noexcept;
 
@@ -198,6 +206,9 @@ private:
     std::unordered_map<uint16_t, std::wstring> _hyperlinkMap;
     std::unordered_map<std::wstring, uint16_t> _hyperlinkCustomIdMap;
     uint16_t _currentHyperlinkId;
+
+    // storage for arbitary pixel drawing. 
+    PixelStorage _pixelStorage;
 
     void _RefreshRowIDs(std::optional<SHORT> newRowWidth);
 

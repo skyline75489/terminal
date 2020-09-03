@@ -1635,6 +1635,26 @@ CATCH_RETURN()
     return S_OK;
 }
 
+[[nodiscard]] HRESULT DxEngine::PaintArbitrayPixels(std::vector<std::vector<COLORREF>>& data, const COORD coordTarget) noexcept
+{
+    const auto existingColor = _d2dBrushForeground->GetColor();
+    const auto resetColorOnExit = wil::scope_exit([&]() noexcept { _d2dBrushForeground->SetColor(existingColor); });
+
+    D2D1_RECT_F draw = til::rectangle{ Viewport::FromCoord(coordTarget).ToInclusive() };
+    for (auto row : data)
+    {
+        for (auto color : row)
+        {
+            _d2dBrushForeground->SetColor(_ColorFFromColorRef(color));
+            _d2dDeviceContext->FillRectangle(draw, _d2dBrushForeground.Get());
+            draw.left++;
+        }
+        draw.top++;
+    }
+
+    return S_OK;
+}
+
 // Routine Description:
 // - Paint terminal effects.
 // Arguments:

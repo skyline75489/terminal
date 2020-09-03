@@ -87,6 +87,8 @@ namespace Microsoft::Console::Render
 
         [[nodiscard]] virtual HRESULT PaintCursor(const CursorOptions& options) noexcept = 0;
 
+        [[nodiscard]] virtual HRESULT PaintArbitrayPixels(std::vector<std::vector<COLORREF>>& data, const COORD coordTarget) noexcept = 0;
+
         [[nodiscard]] virtual HRESULT UpdateDrawingBrushes(const TextAttribute& textAttributes,
                                                            const gsl::not_null<IRenderData*> pData,
                                                            const bool isSettingDefaultBrushes) noexcept = 0;

@@ -34,6 +34,7 @@ namespace Microsoft::Console::VirtualTerminal
         }
 
         void PrintString(const std::wstring_view string) override;
+        bool PrintPixels(const std::vector<std::vector<COLORREF>> &data, bool exclusive) override;
         void Print(const wchar_t wchPrintable) override;
 
         bool CursorUp(const size_t distance) override; // CUU

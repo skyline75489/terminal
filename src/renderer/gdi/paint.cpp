@@ -643,6 +643,11 @@ using namespace Microsoft::Console::Render;
     return S_OK;
 }
 
+[[nodiscard]] HRESULT GdiEngine::PaintArbitrayPixels(std::vector<std::vector<COLORREF>>& /*data*/, const COORD /*coordTarget*/) noexcept
+{
+    return S_OK;
+}
+
 // Routine Description:
 //  - Inverts the selected region on the current screen buffer.
 //  - Reads the selected area, selection mode, and active screen buffer
