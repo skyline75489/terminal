@@ -10,8 +10,8 @@ struct PixelRegion final {
     std::unique_ptr<std::vector<std::vector<COLORREF>>> data;
     bool exclusive;
 
-    PixelRegion(std::unique_ptr<std::vector<std::vector<COLORREF>>> data, bool exclusive) :
-        data(std::move(data)),
+    PixelRegion(std::unique_ptr<std::vector<std::vector<COLORREF>>> inData, bool exclusive) :
+        data(std::move(inData)),
         exclusive(exclusive)
     {
         auto rawData = data.get();
@@ -41,8 +41,11 @@ public:
 
     const bool HasData(const key_type key) const;
 
+    const std::vector<til::rectangle> &GetAllRegion() const;
+
     void Erase(const key_type key) noexcept;
 
 private:
     std::unordered_map<key_type, mapped_type> _map;
+    std::vector<til::rectangle> _regions;
 };

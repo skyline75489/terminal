@@ -121,12 +121,17 @@ const std::vector<RenderOverlay> Terminal::GetOverlays() const noexcept
 const std::vector<Microsoft::Console::Render::RenderAccessory> Terminal::GetAccessories() const noexcept
 {
     std::vector<Microsoft::Console::Render::RenderAccessory> accessories;
-    const auto& cursor = _buffer->GetCursor();
-    const COORD position = cursor.GetPosition();
+    const Viewport visiableViewport = _GetVisibleViewport();
     const PixelStorage& storage = _buffer->GetPixelStorage();
-    if (storage.HasData(position)) {
-        accessories.emplace_back(Microsoft::Console::Render::RenderAccessory{ position, storage.GetData(position)  });
+    const std::vector<til::rectangle>& allRegions = storage.GetAllRegion();
+    for (auto &rect : allRegions)
+    {
+        if (Viewport::Intersect(visiableViewport, Viewport::FromInclusive(rect)) != Viewport::Empty())
+        {
+            accessories.emplace_back(Microsoft::Console::Render::RenderAccessory{ rect.origin(), storage.GetData(rect.origin()) });
+        }
     }
+
     return accessories;
 }
 

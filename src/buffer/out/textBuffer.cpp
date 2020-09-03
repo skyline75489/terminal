@@ -393,6 +393,9 @@ void TextBuffer::WritePixels(std::unique_ptr<PixelRegion> pixelRegion)
     target.Y += 1;
     target.X = 0;
 
+    const Viewport paint = Viewport::FromDimensions(target, { (SHORT)pixelRegion.get()->width, (SHORT)pixelRegion.get()->height });
+    _NotifyPaint(paint);
+
     _pixelStorage.StoreData(target, std::move(pixelRegion));
 }
 

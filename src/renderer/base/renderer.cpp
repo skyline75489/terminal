@@ -1082,7 +1082,12 @@ void Renderer::_PaintAccessories(_In_ IRenderEngine* const pEngine)
 
 void Renderer::_PaintAccessory(IRenderEngine& engine, const RenderAccessory& overlay)
 {
-    LOG_IF_FAILED(engine.PaintArbitrayPixels(*(overlay.pixelRegion.get()->data.get()), overlay.origin));
+    PixelRegion* region = overlay.pixelRegion.get();
+    size_t x = overlay.origin.X;
+    size_t y = overlay.origin.Y;
+    SMALL_RECT dirty = til::rectangle(x, y, region->width, region->height);
+    LOG_IF_FAILED(engine.Invalidate(&dirty));
+    LOG_IF_FAILED(engine.PaintArbitrayPixels(*(region->data.get()), overlay.origin));
 }
 
 // Routine Description:
