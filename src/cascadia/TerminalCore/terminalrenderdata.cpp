@@ -126,7 +126,8 @@ const std::vector<Microsoft::Console::Render::RenderAccessory> Terminal::GetAcce
     const std::vector<til::rectangle>& allRegions = storage.GetAllRegion();
     for (auto &rect : allRegions)
     {
-        if (Viewport::Intersect(visiableViewport, Viewport::FromInclusive(rect)) != Viewport::Empty())
+        til::rectangle newRect = rect.pin_scale_down(til::size(10, 16));
+        if (Viewport::Intersect(visiableViewport, Viewport::FromInclusive(newRect)) != Viewport::Empty())
         {
             accessories.emplace_back(Microsoft::Console::Render::RenderAccessory{ rect.origin(), storage.GetData(rect.origin()) });
         }

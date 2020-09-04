@@ -87,8 +87,10 @@ void AdaptDispatch::PrintString(const std::wstring_view string)
     CATCH_LOG();
 }
 
-bool AdaptDispatch::PrintPixels(const std::vector<std::vector<COLORREF>> &/*data*/, bool /*exclusive*/)
+bool AdaptDispatch::PrintPixels(const std::vector<std::vector<COLORREF>> &data, bool exclusive)
 {
+    _pDefaults->PrintPixels(data, exclusive);
+    CursorNextLine(10);
     return false;
 }
 

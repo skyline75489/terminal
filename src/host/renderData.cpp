@@ -272,21 +272,6 @@ const std::vector<Microsoft::Console::Render::RenderOverlay> RenderData::GetOver
 const std::vector<Microsoft::Console::Render::RenderAccessory> RenderData::GetAccessories() const noexcept
 {
     std::vector<Microsoft::Console::Render::RenderAccessory> accessories;
-
-    try
-        {
-        const CONSOLE_INFORMATION& gci = ServiceLocator::LocateGlobals().getConsoleInformation();
-        const TextBuffer& textBuffer = gci.GetActiveOutputBuffer().GetTextBuffer();
-        const auto& cursor = textBuffer.GetCursor();
-        COORD position = cursor.GetPosition();
-        position.X = 0;
-        const PixelStorage& storage = textBuffer.GetPixelStorage();
-        if (storage.HasData(position)) {
-            accessories.emplace_back(Microsoft::Console::Render::RenderAccessory{ position,storage.GetData(position)  });
-        }
-    }
-    CATCH_LOG();
-
     return accessories;
 }
 
