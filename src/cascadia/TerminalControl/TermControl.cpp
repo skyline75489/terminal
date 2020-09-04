@@ -1922,6 +1922,7 @@ namespace winrt::Microsoft::Terminal::TerminalControl::implementation
         _renderer->TriggerFontChange(newDpi, _desiredFont, _actualFont);
 
         const auto actualNewSize = _actualFont.GetSize();
+        _terminal->SetFontSize(actualNewSize);
         _fontSizeChangedHandlers(actualNewSize.X, actualNewSize.Y, initialUpdate);
     }
 

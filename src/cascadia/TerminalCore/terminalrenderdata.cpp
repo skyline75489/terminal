@@ -123,13 +123,26 @@ const std::vector<Microsoft::Console::Render::RenderAccessory> Terminal::GetAcce
     std::vector<Microsoft::Console::Render::RenderAccessory> accessories;
     const Viewport visiableViewport = _GetVisibleViewport();
     const PixelStorage& storage = _buffer->GetPixelStorage();
-    const std::vector<til::rectangle>& allRegions = storage.GetAllRegion();
-    for (auto &rect : allRegions)
+    const std::vector<til::size>& allRegions = storage.GetAllRegion();
+    for (auto &origin : allRegions)
     {
-        til::rectangle newRect = rect.pin_scale_down(til::size(10, 16));
-        if (Viewport::Intersect(visiableViewport, Viewport::FromInclusive(newRect)) != Viewport::Empty())
+        til::size rectSize = storage.GetData(origin).get()->size / til::size(_fontSize);
+        til::rectangle viewport = til::rectangle(visiableViewport.Left(),
+            visiableViewport.Top(),
+            visiableViewport.RightInclusive(),
+            visiableViewport.BottomInclusive());
+
+        til::rectangle rect = til::rectangle(
+            origin.width(), origin.height(), origin.width() + rectSize.width(), origin.height() + rectSize.height());
+
+        // Reposition
+        til::point newOrigin(rect.origin().x() - visiableViewport.Left(), rect.origin().y() - visiableViewport.Top());
+
+        if (newOrigin.x() < rect.height())
         {
-            accessories.emplace_back(Microsoft::Console::Render::RenderAccessory{ rect.origin(), storage.GetData(rect.origin()) });
+            accessories.emplace_back(Microsoft::Console::Render::RenderAccessory{
+                {gsl::narrow_cast<SHORT>(newOrigin.x()), gsl::narrow_cast<SHORT>(newOrigin.y())},
+                storage.GetData(rect.origin()) });
         }
     }
 

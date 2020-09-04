@@ -29,12 +29,7 @@ const PixelStorage::mapped_type& PixelStorage::GetData(const key_type key) const
 // - glyph - the glyph data to store
 void PixelStorage::StoreData(const key_type key, mapped_type data)
 {
-    size_t x = key.X;
-    size_t y = key.Y;
-    size_t width = data.get()->width;
-    size_t height = data.get()->height;
-    til::rectangle rect(x, y, x + width, y + height);
-    _regions.emplace_back(rect);
+    _regions.emplace_back(til::size(key));
     _map.insert_or_assign(key, std::move(data));
 }
 
@@ -43,7 +38,7 @@ const bool PixelStorage::HasData(const key_type key) const
     return _map.find(key) != _map.end();
 }
 
-const std::vector<til::rectangle>& PixelStorage::GetAllRegion() const
+const std::vector<til::size>& PixelStorage::GetAllRegion() const
 {
     return _regions;
 }

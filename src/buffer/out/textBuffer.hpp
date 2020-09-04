@@ -96,9 +96,9 @@ public:
                                  const std::optional<bool> setWrap = std::nullopt,
                                  const std::optional<size_t> limitRight = std::nullopt);
 
-    void WritePixels(std::unique_ptr<PixelRegion> pixelRegion);
     void WritePixels(const COORD target,
-                     std::unique_ptr<PixelRegion> pixelRegion);
+                     std::unique_ptr<PixelRegion> pixelRegion,
+                     const COORD newCursorPosition);
 
     bool InsertCharacter(const wchar_t wch, const DbcsAttribute dbcsAttribute, const TextAttribute attr);
     bool InsertCharacter(const std::wstring_view chars, const DbcsAttribute dbcsAttribute, const TextAttribute attr);

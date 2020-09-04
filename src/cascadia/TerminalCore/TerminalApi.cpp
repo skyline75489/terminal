@@ -24,7 +24,19 @@ try
     auto pixelRegion = std::make_unique<PixelRegion>(
         std::make_unique<std::vector<std::vector<COLORREF>>>(data),
         exclusive);
-    _buffer->WritePixels(std::move(pixelRegion));
+
+    const auto& cursor = _buffer->GetCursor();
+    auto target = cursor.GetPosition();
+    til::size charSize = pixelRegion.get()->size / til::size(_fontSize);
+    COORD newCusorPosition = target;
+    if (exclusive)
+    {
+        target.X = 0;
+        newCusorPosition.Y += gsl::narrow_cast<SHORT>(charSize.height());
+    }
+
+    _buffer->WritePixels(target, std::move(pixelRegion), newCusorPosition);
+
     return true;
 }
 CATCH_LOG_RETURN_FALSE()

@@ -386,22 +386,11 @@ OutputCellIterator TextBuffer::WriteLine(const OutputCellIterator givenIt,
     return newIt;
 }
 
-void TextBuffer::WritePixels(std::unique_ptr<PixelRegion> pixelRegion)
-{
-    const auto& cursor = GetCursor();
-    auto target = cursor.GetPosition();
-    target.Y += 1;
-    target.X = 0;
-
-    const Viewport paint = Viewport::FromDimensions(target, { (SHORT)pixelRegion.get()->width, (SHORT)pixelRegion.get()->height });
-    _NotifyPaint(paint);
-
-    _pixelStorage.StoreData(target, std::move(pixelRegion));
-}
-
 void TextBuffer::WritePixels(const COORD target,
-                             std::unique_ptr<PixelRegion> pixelRegion)
+                             std::unique_ptr<PixelRegion> pixelRegion,
+                             const COORD newCursorPosition)
 {
+    GetCursor().SetPosition(newCursorPosition);
     _pixelStorage.StoreData(target, std::move(pixelRegion));
 }
 

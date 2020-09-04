@@ -1637,8 +1637,8 @@ CATCH_RETURN()
 
 [[nodiscard]] HRESULT DxEngine::PaintArbitrayPixels(std::vector<std::vector<COLORREF>>& data, const COORD coordTarget) noexcept
 {
+    // If a clip rectangle is in place from drawing the text layer, remove it here.
     LOG_IF_FAILED(_customRenderer->EndClip(_drawingContext.get()));
-
     const auto existingColor = _d2dBrushForeground->GetColor();
     const auto resetColorOnExit = wil::scope_exit([&]() noexcept { _d2dBrushForeground->SetColor(existingColor); });
 

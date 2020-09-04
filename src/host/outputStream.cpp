@@ -44,15 +44,6 @@ void WriteBuffer::PrintString(const std::wstring_view string)
     _DefaultStringCase(string);
 }
 
-void WriteBuffer::PrintPixels(const std::vector<std::vector<COLORREF>> &data, bool exclusive)
-{
-    TextBuffer& textBuffer = _io.GetActiveOutputBuffer().GetTextBuffer();
-    auto pixelRegion = std::make_unique<PixelRegion>(
-        std::make_unique<std::vector<std::vector<COLORREF>>>(data),
-        exclusive);
-    textBuffer.WritePixels(std::move(pixelRegion));
-}
-
 // Routine Description:
 // - Handles the execute action from the state machine
 // Arguments:

@@ -1042,6 +1042,11 @@ const std::optional<til::color> Terminal::GetTabColor() const noexcept
     return _tabColor;
 }
 
+void Terminal::SetFontSize(COORD size)
+{
+    _fontSize = size;
+}
+
 BlinkingState& Terminal::GetBlinkingState() const noexcept
 {
     return _blinkingState;

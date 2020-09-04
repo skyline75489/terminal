@@ -210,6 +210,10 @@ public:
     const TextBuffer::TextAndColor RetrieveSelectedTextFromBuffer(bool trimTrailingWhitespace) const;
 #pragma endregion
 
+#pragma region PixelDrawing
+    void SetFontSize(COORD size);
+#pragma endregion
+
 private:
     std::function<void(std::wstring&)> _pfnWriteInput;
     std::function<void()> _pfnWarningBell;
@@ -253,6 +257,10 @@ private:
     bool _blockSelection;
     std::wstring _wordDelimiters;
     SelectionExpansionMode _multiClickSelectionMode;
+#pragma endregion
+
+#pragma region PixelDrawing
+    COORD _fontSize;
 #pragma endregion
 
     std::shared_mutex _readWriteLock;

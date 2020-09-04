@@ -5,8 +5,7 @@
 
 
 struct PixelRegion final {
-    size_t width;
-    size_t height;
+    til::size size;
     std::unique_ptr<std::vector<std::vector<COLORREF>>> data;
     bool exclusive;
 
@@ -17,11 +16,14 @@ struct PixelRegion final {
         auto rawData = data.get();
         if (rawData != nullptr)
         {
-            height = rawData->size();
+            size_t height = rawData->size();
+            size_t width = 0;
             if (height > 0)
             {
                 width = rawData->at(0).size();
             }
+
+            size = til::size(width, height);
         }
     }
 };
@@ -41,11 +43,11 @@ public:
 
     const bool HasData(const key_type key) const;
 
-    const std::vector<til::rectangle> &GetAllRegion() const;
+    const std::vector<til::size> &GetAllRegion() const;
 
     void Erase(const key_type key) noexcept;
 
 private:
     std::unordered_map<key_type, mapped_type> _map;
-    std::vector<til::rectangle> _regions;
+    std::vector<til::size> _regions;
 };
