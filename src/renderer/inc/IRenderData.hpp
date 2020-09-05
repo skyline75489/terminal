@@ -40,9 +40,9 @@ namespace Microsoft::Console::Render
 
     struct RenderAccessory final
     {
-        // This is where the top left of the stored buffer should be overlayed on the screen
-        // (relative to the current visible viewport)
         const COORD origin;
+
+        const COORD bitmapOrigin;
 
         const std::unique_ptr<PixelRegion>& pixelRegion;
     };
@@ -72,7 +72,7 @@ namespace Microsoft::Console::Render
         virtual bool IsScreenReversed() const noexcept = 0;
 
         virtual const std::vector<RenderOverlay> GetOverlays() const noexcept = 0;
-        virtual const std::vector<RenderAccessory> GetAccessories() const noexcept = 0;
+        virtual const std::optional<Microsoft::Console::Render::RenderAccessory> GetAccessories(const COORD coord) const noexcept = 0;
 
         virtual const bool IsGridLineDrawingAllowed() noexcept = 0;
         virtual const std::wstring GetConsoleTitle() const noexcept = 0;

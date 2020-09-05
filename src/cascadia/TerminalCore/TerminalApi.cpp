@@ -28,6 +28,7 @@ try
     const auto& cursor = _buffer->GetCursor();
     auto target = cursor.GetPosition();
     til::size charSize = pixelRegion.get()->size / til::size(_fontSize);
+    pixelRegion.get()->estimateSizeInBuffer = charSize;
     COORD newCusorPosition = target;
     if (exclusive)
     {

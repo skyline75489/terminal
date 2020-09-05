@@ -150,7 +150,6 @@ try
 
     // 3. Paint overlays that reside above the text buffer
     _PaintOverlays(pEngine);
-    _PaintAccessories(pEngine);
 
     // 4. Paint Selection
     _PaintSelection(pEngine);
@@ -788,10 +787,17 @@ void Renderer::_PaintBufferOutputHelper(_In_ IRenderEngine* const pEngine,
                 it += columnCount > 0 ? columnCount : 1; // prevent infinite loop for no visible columns
                 cols += columnCount;
 
+                auto accessory = _pData->GetAccessories(it.GetPos());
+                if (accessory.has_value())
+                {
+                    LOG_IF_FAILED(pEngine->PaintArbitrayPixels(accessory.value()));
+                }
+
             } while (it);
 
             // Do the painting.
             THROW_IF_FAILED(pEngine->PaintBufferLine({ _clusterBuffer.data(), _clusterBuffer.size() }, screenPoint, trimLeft, lineWrapped));
+
 
             // If we're allowed to do grid drawing, draw that now too (since it will be coupled with the color data)
             // We're only allowed to draw the grid lines under certain circumstances.
@@ -1064,30 +1070,6 @@ void Renderer::_PaintOverlays(_In_ IRenderEngine* const pEngine)
         }
     }
     CATCH_LOG();
-}
-
-void Renderer::_PaintAccessories(_In_ IRenderEngine* const pEngine)
-{
-    try
-    {
-        const auto accessories = _pData->GetAccessories();
-
-        for (const auto& accessory : accessories)
-        {
-            _PaintAccessory(*pEngine, accessory);
-        }
-    }
-    CATCH_LOG();
-}
-
-void Renderer::_PaintAccessory(IRenderEngine& engine, const RenderAccessory& overlay)
-{
-    PixelRegion* region = overlay.pixelRegion.get();
-    //size_t x = overlay.origin.X;
-    //size_t y = overlay.origin.Y;
-    //SMALL_RECT dirty = til::rectangle(x, y, region->width, region->height);
-    //LOG_IF_FAILED(engine.Invalidate(&dirty));
-    LOG_IF_FAILED(engine.PaintArbitrayPixels(*(region->data.get()), overlay.origin));
 }
 
 // Routine Description:

@@ -269,10 +269,9 @@ const std::vector<Microsoft::Console::Render::RenderOverlay> RenderData::GetOver
     return overlays;
 }
 
-const std::vector<Microsoft::Console::Render::RenderAccessory> RenderData::GetAccessories() const noexcept
+const std::optional<Microsoft::Console::Render::RenderAccessory> RenderData::GetAccessories(const COORD /*coord*/) const noexcept
 {
-    std::vector<Microsoft::Console::Render::RenderAccessory> accessories;
-    return accessories;
+    return std::nullopt;
 }
 
 // Method Description:

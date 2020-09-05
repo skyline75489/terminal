@@ -7,6 +7,7 @@
 struct PixelRegion final {
     til::size size;
     std::unique_ptr<std::vector<std::vector<COLORREF>>> data;
+    til::size estimateSizeInBuffer;
     bool exclusive;
 
     PixelRegion(std::unique_ptr<std::vector<std::vector<COLORREF>>> inData, bool exclusive) :
@@ -43,11 +44,11 @@ public:
 
     const bool HasData(const key_type key) const;
 
-    const std::vector<til::size> &GetAllRegion() const;
+    const std::vector<til::point> &GetAllRegion() const;
 
     void Erase(const key_type key) noexcept;
 
 private:
     std::unordered_map<key_type, mapped_type> _map;
-    std::vector<til::size> _regions;
+    std::vector<til::point> _regions;
 };

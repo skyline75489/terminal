@@ -1635,27 +1635,38 @@ CATCH_RETURN()
     return S_OK;
 }
 
-[[nodiscard]] HRESULT DxEngine::PaintArbitrayPixels(std::vector<std::vector<COLORREF>>& data, const COORD coordTarget) noexcept
+[[nodiscard]] HRESULT DxEngine::PaintArbitrayPixels(const RenderAccessory& accessory) noexcept
 {
+    const auto coordTarget = accessory.bitmapOrigin;
+    const auto data = accessory.pixelRegion.get()->data.get();
     // If a clip rectangle is in place from drawing the text layer, remove it here.
     LOG_IF_FAILED(_customRenderer->EndClip(_drawingContext.get()));
     const auto existingColor = _d2dBrushForeground->GetColor();
     const auto resetColorOnExit = wil::scope_exit([&]() noexcept { _d2dBrushForeground->SetColor(existingColor); });
 
-    D2D1_RECT_F draw = til::rectangle{ Viewport::FromCoord(coordTarget).ToInclusive() }.scale_up(_glyphCell);
-    FLOAT delta = draw.right - draw.left;
-    for (auto row : data)
+    D2D1_RECT_F draw = til::rectangle{ Viewport::FromCoord(accessory.origin).ToInclusive() }.scale_up(_glyphCell);
+    auto originLeft = draw.left;
+    draw.right = draw.left + 1;
+    draw.bottom = draw.top + 1;
+    auto rowStart = coordTarget.Y * _glyphCell.height();
+    auto rowEnd = (coordTarget.Y + 1) * _glyphCell.height();
+    auto columnStart = coordTarget.X * _glyphCell.width();
+    auto columnEnd = (coordTarget.X + 1) * _glyphCell.width();
+
+    for (auto row = rowStart; row < rowEnd; row++)
     {
-        for (auto color : row)
+        auto rowData = data->at(row);
+        for (auto column = columnStart; column < columnEnd; column++)
         {
+            auto color = rowData.at(column);
             auto foregroundColor = color == 0 ? _defaultBackgroundColor : _ColorFFromColorRef((OPACITY_OPAQUE | color));
             _d2dBrushForeground->SetColor(foregroundColor);
             _d2dDeviceContext->FillRectangle(draw, _d2dBrushForeground.Get());
             draw.left++;
             draw.right++;
         }
-        draw.left = 0;
-        draw.right = delta;
+        draw.left = originLeft;
+        draw.right = originLeft + 1;
         draw.top++;
         draw.bottom++;
     }

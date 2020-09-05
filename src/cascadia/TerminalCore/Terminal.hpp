@@ -159,7 +159,7 @@ public:
     bool IsCursorDoubleWidth() const override;
     bool IsScreenReversed() const noexcept override;
     const std::vector<Microsoft::Console::Render::RenderOverlay> GetOverlays() const noexcept override;
-    const std::vector<Microsoft::Console::Render::RenderAccessory> GetAccessories() const noexcept override;
+    const std::optional<Microsoft::Console::Render::RenderAccessory> GetAccessories(const COORD coord) const noexcept override;
 
     const bool IsGridLineDrawingAllowed() noexcept override;
     const std::wstring GetHyperlinkUri(uint16_t id) const noexcept override;

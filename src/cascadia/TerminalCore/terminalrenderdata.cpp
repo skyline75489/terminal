@@ -118,35 +118,30 @@ const std::vector<RenderOverlay> Terminal::GetOverlays() const noexcept
     return {};
 }
 
-const std::vector<Microsoft::Console::Render::RenderAccessory> Terminal::GetAccessories() const noexcept
+const std::optional<Microsoft::Console::Render::RenderAccessory> Terminal::GetAccessories(const COORD coord) const noexcept
 {
-    std::vector<Microsoft::Console::Render::RenderAccessory> accessories;
-    const Viewport visiableViewport = _GetVisibleViewport();
     const PixelStorage& storage = _buffer->GetPixelStorage();
-    const std::vector<til::size>& allRegions = storage.GetAllRegion();
+    const std::vector<til::point>& allRegions = storage.GetAllRegion();
     for (auto &origin : allRegions)
     {
         til::size rectSize = storage.GetData(origin).get()->size / til::size(_fontSize);
-        til::rectangle viewport = til::rectangle(visiableViewport.Left(),
-            visiableViewport.Top(),
-            visiableViewport.RightInclusive(),
-            visiableViewport.BottomInclusive());
-
         til::rectangle rect = til::rectangle(
-            origin.width(), origin.height(), origin.width() + rectSize.width(), origin.height() + rectSize.height());
+            origin.x(), origin.y(), origin.x() + rectSize.width(), origin.y() + rectSize.height());
 
-        // Reposition
-        til::point newOrigin(rect.origin().x() - visiableViewport.Left(), rect.origin().y() - visiableViewport.Top());
-
-        if (newOrigin.x() < rect.height())
+        auto point = til::point(coord);
+        if (rect.contains(point))
         {
-            accessories.emplace_back(Microsoft::Console::Render::RenderAccessory{
-                {gsl::narrow_cast<SHORT>(newOrigin.x()), gsl::narrow_cast<SHORT>(newOrigin.y())},
-                storage.GetData(rect.origin()) });
+            auto newOrigin = til::point(point.x() - origin.x(), point.y() - origin.y());
+            return Microsoft::Console::Render::RenderAccessory{
+                coord,
+                { gsl::narrow_cast<SHORT>(newOrigin.x()), gsl::narrow_cast<SHORT>(newOrigin.y()) },
+                storage.GetData(rect.origin())
+            };
         }
+
     }
 
-    return accessories;
+    return std::nullopt;
 }
 
 const bool Terminal::IsGridLineDrawingAllowed() noexcept

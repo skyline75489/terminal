@@ -357,7 +357,7 @@ CATCH_RETURN();
     return S_FALSE;
 }
 
-[[nodiscard]] HRESULT UiaEngine::PaintArbitrayPixels(std::vector<std::vector<COLORREF>>& /*data*/, const COORD /*coordTarget*/) noexcept
+[[nodiscard]] HRESULT UiaEngine::PaintArbitrayPixels(const RenderAccessory& /*pixelRegion*/) noexcept
 {
     return S_FALSE;
 }

@@ -197,7 +197,12 @@ ptrdiff_t TextBufferCellIterator::operator-(const TextBufferCellIterator& it)
     return _bounds.CompareInBounds(_pos, it._pos);
 }
 
-// Routine Description:
+const COORD TextBufferCellIterator::GetPos() const noexcept
+{
+    return _pos;
+}
+
+    // Routine Description:
 // - Sets the coordinate position that this iterator will inspect within the text buffer on dereference.
 // Arguments:
 // - newPos - The new coordinate position.

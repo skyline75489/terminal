@@ -674,18 +674,6 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
             return til::rectangle{ topLeft, bottomRight };
         }
 
-        rectangle pin_scale_down(const size& size) const
-        {
-            auto bottomRight = _bottomRight;
-
-            // Move bottom right point into a size
-            // Use size specialization of divide_ceil to round up against the size given.
-            // Add leading addition to point to convert it back into a point.
-            bottomRight = til::point{} + til::size{ right(), bottom() }.divide_ceil(size);
-
-            return til::rectangle{ _topLeft, bottomRight };
-        }
-
         template<typename TilMath>
         rectangle scale(TilMath, const float scale) const
         {

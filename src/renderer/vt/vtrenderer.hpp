@@ -72,7 +72,7 @@ namespace Microsoft::Console::Render
         [[nodiscard]] HRESULT PaintSelection(const SMALL_RECT rect) noexcept override;
 
         [[nodiscard]] virtual HRESULT PaintCursor(const CursorOptions& options) noexcept override;
-        [[nodiscard]] virtual HRESULT PaintArbitrayPixels(std::vector<std::vector<COLORREF>>& data, const COORD coordTarget) noexcept override;
+        [[nodiscard]] virtual HRESULT PaintArbitrayPixels(const RenderAccessory& pixelRegion) noexcept override;
 
         [[nodiscard]] virtual HRESULT UpdateDrawingBrushes(const TextAttribute& textAttributes,
                                                            const gsl::not_null<IRenderData*> pData,

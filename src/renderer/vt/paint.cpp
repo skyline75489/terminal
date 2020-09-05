@@ -166,8 +166,12 @@ using namespace Microsoft::Console::Types;
     return S_OK;
 }
 
-[[nodiscard]] HRESULT VtEngine::PaintArbitrayPixels(std::vector<std::vector<COLORREF>>& /*data*/, const COORD /*coordTarget*/) noexcept
+[[nodiscard]] HRESULT VtEngine::PaintArbitrayPixels(const RenderAccessory& /*pixelRegion*/) noexcept
 {
+    for (auto i = 0; i < 10; i++)
+    {
+        _bufferLine.append(L"\r");
+    }
     return S_OK;
 }
 

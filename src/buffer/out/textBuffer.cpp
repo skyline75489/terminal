@@ -390,6 +390,8 @@ void TextBuffer::WritePixels(const COORD target,
                              std::unique_ptr<PixelRegion> pixelRegion,
                              const COORD newCursorPosition)
 {
+    const Viewport paint = Viewport::FromDimensions(target, { newCursorPosition.Y, GetSize().Width() });
+    _NotifyPaint(paint);
     GetCursor().SetPosition(newCursorPosition);
     _pixelStorage.StoreData(target, std::move(pixelRegion));
 }
