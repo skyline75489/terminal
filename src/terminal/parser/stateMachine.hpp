@@ -106,6 +106,7 @@ namespace Microsoft::Console::VirtualTerminal
         void _EventDcsIntermediate(const wchar_t wch);
         void _EventDcsParam(const wchar_t wch);
         void _EventDcsPassThrough(const wchar_t wch);
+        void _EventDcsTermination(const wchar_t wch);
         void _EventSosPmApcString(const wchar_t wch) noexcept;
         void _EventVariableLengthStringTermination(const wchar_t wch);
 
