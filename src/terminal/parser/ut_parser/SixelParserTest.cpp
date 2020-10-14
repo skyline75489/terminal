@@ -153,7 +153,7 @@ class SixelParserTest final
     }
 
     void verify_sixel_row(
-        std::vector<std::vector<til::color>>& data,
+        std::vector<std::vector<COLORREF>>& data,
         size_t posX,
         size_t posY,
         size_t length,
@@ -167,7 +167,7 @@ class SixelParserTest final
     }
 
     void verify_sixel(
-        std::vector<std::vector<til::color>>& data,
+        std::vector<std::vector<COLORREF>>& data,
         size_t posX,
         size_t posY,
         const wchar_t sixelChar,
