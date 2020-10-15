@@ -783,7 +783,7 @@ void TextBuffer::ScrollRows(const SHORT firstRow, const SHORT size, const SHORT 
     // Refreshing should also delegate to the UnicodeStorage to re-key all the stored unicode sequences (where applicable).
     _RefreshRowIDs(std::nullopt);
 
-    // TODO yatli: scroll pixel storage
+    _pixelStorage.Scroll(firstRow, size, delta);
 }
 
 Cursor& TextBuffer::GetCursor() noexcept

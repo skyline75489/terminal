@@ -62,6 +62,8 @@ public:
 
     void Erase(const key_type key) noexcept;
 
+    void Scroll(const SHORT firstRow, const SHORT size, const SHORT delta);
+
 private:
     std::unordered_map<key_type, mapped_type> _map;
 };

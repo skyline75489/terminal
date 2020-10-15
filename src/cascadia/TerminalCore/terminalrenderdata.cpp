@@ -123,17 +123,21 @@ const std::optional<Microsoft::Console::Render::RenderAccessory> Terminal::GetAc
     auto point = til::point(coord);
     for (const auto& [origin, region] : _buffer->GetPixelStorage())
     {
+        // FIXME: size will mismatch after font reconfiguration
         til::size rectSize = region.get()->size / til::size(_fontSize);
+        //til::size rectSize = region->RoundCellRegion();
         til::rectangle rect = til::rectangle(
             static_cast<ptrdiff_t>(origin.X), static_cast<ptrdiff_t>(origin.Y),
             origin.X + rectSize.width(), origin.Y + rectSize.height());
 
         if (rect.contains(point))
         {
-            auto newOrigin = til::point(point.x() - origin.X, point.y() - origin.Y);
+            auto bitmapOrigin = til::point(point.x() - origin.X, point.y() - origin.Y);
+            auto screenCoord = coord;
+            screenCoord.Y -= _buffer->GetFirstRowIndex();
             return Microsoft::Console::Render::RenderAccessory{
-                coord,
-                { gsl::narrow_cast<SHORT>(newOrigin.x()), gsl::narrow_cast<SHORT>(newOrigin.y()) },
+                screenCoord,
+                { gsl::narrow_cast<SHORT>(bitmapOrigin.x()), gsl::narrow_cast<SHORT>(bitmapOrigin.y()) },
                 region
             };
         }
