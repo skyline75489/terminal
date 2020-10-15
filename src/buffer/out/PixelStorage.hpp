@@ -7,10 +7,14 @@
 struct PixelRegion final {
     til::size size;
     std::unique_ptr<std::vector<std::vector<COLORREF>>> data;
-    til::size estimateSizeInBuffer;
+    // The anchored-down size in cell metric.
+    // Changing the font results in distorted aspect ration, but
+    // this guarantees that the cell coordinates of the pixel region
+    // remains invariant.
+    float_t cellWidth, cellHeight;
     bool exclusive;
 
-    PixelRegion(std::unique_ptr<std::vector<std::vector<COLORREF>>> inData, bool exclusive) :
+    PixelRegion(std::unique_ptr<std::vector<std::vector<COLORREF>>> inData, const COORD& fontSize, bool exclusive) :
         data(std::move(inData)),
         exclusive(exclusive)
     {
@@ -26,6 +30,14 @@ struct PixelRegion final {
 
             size = til::size(width, height);
         }
+        THROW_HR_IF(E_ABORT, !base::CheckDiv(size.width<float>(), static_cast<float_t>(fontSize.X)).AssignIfValid(&cellWidth));
+        THROW_HR_IF(E_ABORT, !base::CheckDiv(size.height<float>(), static_cast<float_t>(fontSize.Y)).AssignIfValid(&cellHeight));
+    }
+
+    // Get the rounded-up cell region
+    COORD RoundCellRegion()
+    {
+        return { ceil(cellWidth), ceil(cellHeight) };
     }
 };
 

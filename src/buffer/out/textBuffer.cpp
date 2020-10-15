@@ -386,14 +386,11 @@ OutputCellIterator TextBuffer::WriteLine(const OutputCellIterator givenIt,
     return newIt;
 }
 
-void TextBuffer::WritePixels(const COORD target,
-                             std::unique_ptr<PixelRegion> pixelRegion,
-                             const COORD newCursorPosition)
+void TextBuffer::WritePixels(const COORD target, std::unique_ptr<PixelRegion> pixelRegion)
 {
-    const Viewport paint = Viewport::FromDimensions(target, { newCursorPosition.Y, GetSize().Width() });
-    _NotifyPaint(paint);
-    GetCursor().SetPosition(newCursorPosition);
+    const Viewport paintRegion = Viewport::FromDimensions(target, pixelRegion->RoundCellRegion());
     _pixelStorage.StoreData(target, std::move(pixelRegion));
+    _NotifyPaint(paintRegion);
 }
 
 //Routine Description:
@@ -785,6 +782,8 @@ void TextBuffer::ScrollRows(const SHORT firstRow, const SHORT size, const SHORT 
     // Renumber the IDs now that we've rearranged where the rows sit within the buffer.
     // Refreshing should also delegate to the UnicodeStorage to re-key all the stored unicode sequences (where applicable).
     _RefreshRowIDs(std::nullopt);
+
+    // TODO yatli: scroll pixel storage
 }
 
 Cursor& TextBuffer::GetCursor() noexcept
