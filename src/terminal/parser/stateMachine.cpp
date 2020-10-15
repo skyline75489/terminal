@@ -1843,7 +1843,7 @@ void StateMachine::ProcessCharacter(const wchar_t wch)
         case VTStates::DcsPassThrough:
             return _EventDcsPassThrough(wch);
         case VTStates::DcsTermination:
-            return _EventVariableLengthStringTermination(wch);
+            return _EventDcsTermination(wch);
         case VTStates::SosPmApcString:
             return _EventSosPmApcString(wch);
         case VTStates::SosPmApcTermination:
