@@ -63,6 +63,7 @@ namespace Microsoft::Console::VirtualTerminal
         void _ActionOscDispatch(const wchar_t wch);
         void _ActionSs3Dispatch(const wchar_t wch);
         void _ActionDcsPassThrough(const wchar_t wch);
+        void _ActionDcsDispatch(const wchar_t wch);
 
         void _ActionClear();
         void _ActionIgnore() noexcept;

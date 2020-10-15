@@ -662,6 +662,29 @@ void StateMachine::_ActionDcsPassThrough(const wchar_t wch)
 }
 
 // Routine Description:
+// - Triggers the DcsDispatch action to indicate that the listener should handle a DCS sequence.
+//   These sequences perform various API-type commands that can include many parameters.
+// Arguments:
+// - wch - Character to dispatch.
+// Return Value:
+// - <none>
+void StateMachine::_ActionDcsDispatch(const wchar_t wch)
+{
+    const auto success = _engine->ActionDcsDispatch(_identifier.Finalize(),
+                                                    { _parameters.data(), _parameters.size() },
+                                                    _dcsDataString);
+
+    // Trace the result.
+    _trace.DispatchSequenceTrace(success);
+
+    if (!success)
+    {
+        TermTelemetry::Instance().LogFailed(wch);
+    }
+
+}
+
+// Routine Description:
 // - Moves the state machine into the Ground state.
 //   This state is entered:
 //   1. By default at the beginning of operation
@@ -1695,7 +1718,7 @@ void StateMachine::_EventVariableLengthStringTermination(const wchar_t wch)
         }
         else if (_state == VTStates::DcsTermination)
         {
-            // TODO:GH#7316: The Dcs sequence has successfully terminated. This is where we'd be dispatching the DCS command.
+            _ActionDcsDispatch(wch);
         }
         else if (_state == VTStates::SosPmApcTermination)
         {
@@ -1725,15 +1748,7 @@ void StateMachine::_EventDcsTermination(const wchar_t wch)
 
     if (_isStringTerminatorIndicator(wch))
     {
-        // TODO: The Dcs sequence has successfully terminated. This is where we'd be dispatching the DCS command.
-        const auto success = _engine->ActionDcsDispatch(_identifier.Finalize(),
-                                                        { _parameters.data(), _parameters.size() },
-                                                        _dcsDataString);
-        if (!success)
-        {
-            TermTelemetry::Instance().LogFailed(wch);
-        }
-
+        _ActionDcsDispatch(wch);
         _EnterGround();
     }
     else
