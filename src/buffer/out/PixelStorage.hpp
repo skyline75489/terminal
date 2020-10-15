@@ -29,15 +29,15 @@ struct PixelRegion final {
             }
 
             size = til::size(width, height);
+            THROW_HR_IF(E_ABORT, !base::CheckDiv(size.width<float>(), static_cast<float_t>(fontSize.X)).AssignIfValid(&cellWidth));
+            THROW_HR_IF(E_ABORT, !base::CheckDiv(size.height<float>(), static_cast<float_t>(fontSize.Y)).AssignIfValid(&cellHeight));
         }
-        THROW_HR_IF(E_ABORT, !base::CheckDiv(size.width<float>(), static_cast<float_t>(fontSize.X)).AssignIfValid(&cellWidth));
-        THROW_HR_IF(E_ABORT, !base::CheckDiv(size.height<float>(), static_cast<float_t>(fontSize.Y)).AssignIfValid(&cellHeight));
     }
 
     // Get the rounded-up cell region
     COORD RoundCellRegion()
     {
-        return { ceil(cellWidth), ceil(cellHeight) };
+        return { gsl::narrow_cast<short>(ceil(cellWidth)), gsl::narrow_cast<short>(ceil(cellHeight)) };
     }
 };
 
@@ -56,11 +56,12 @@ public:
 
     const bool HasData(const key_type key) const;
 
-    const std::vector<til::point> &GetAllRegion() const;
+    auto begin() const { return _map.begin(); }
+
+    auto end() const { return _map.end(); }
 
     void Erase(const key_type key) noexcept;
 
 private:
     std::unordered_map<key_type, mapped_type> _map;
-    std::vector<til::point> _regions;
 };

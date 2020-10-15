@@ -27,11 +27,12 @@ try
         exclusive);
 
     COORD cursorPos = _buffer->GetCursor().GetPosition();
+    short imgHeight = pixelRegion->RoundCellRegion().Y;
     _buffer->WritePixels(cursorPos, std::move(pixelRegion));
     if (exclusive)
     {
         cursorPos.X = 0;
-        cursorPos.Y += _fontSize.Y;
+        cursorPos.Y += imgHeight;
     }
     _AdjustCursorPosition(cursorPos);
 

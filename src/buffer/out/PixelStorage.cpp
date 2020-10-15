@@ -5,8 +5,7 @@
 #include "PixelStorage.hpp"
 
 PixelStorage::PixelStorage() noexcept :
-    _map{},
-    _regions{}
+    _map{}
 {
 }
 
@@ -29,18 +28,12 @@ const PixelStorage::mapped_type& PixelStorage::GetData(const key_type key) const
 // - glyph - the glyph data to store
 void PixelStorage::StoreData(const key_type key, mapped_type data)
 {
-    _regions.emplace_back(til::point(key));
     _map.insert_or_assign(key, std::move(data));
 }
 
 const bool PixelStorage::HasData(const key_type key) const
 {
     return _map.find(key) != _map.end();
-}
-
-const std::vector<til::point>& PixelStorage::GetAllRegion() const
-{
-    return _regions;
 }
 
 // Routine Description:

@@ -389,8 +389,8 @@ OutputCellIterator TextBuffer::WriteLine(const OutputCellIterator givenIt,
 void TextBuffer::WritePixels(const COORD target, std::unique_ptr<PixelRegion> pixelRegion)
 {
     const Viewport paintRegion = Viewport::FromDimensions(target, pixelRegion->RoundCellRegion());
-    _pixelStorage.StoreData(target, std::move(pixelRegion));
     _NotifyPaint(paintRegion);
+    _pixelStorage.StoreData(target, std::move(pixelRegion));
 }
 
 //Routine Description:

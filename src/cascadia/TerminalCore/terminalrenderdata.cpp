@@ -120,25 +120,23 @@ const std::vector<RenderOverlay> Terminal::GetOverlays() const noexcept
 
 const std::optional<Microsoft::Console::Render::RenderAccessory> Terminal::GetAccessories(const COORD coord) const noexcept
 {
-    const PixelStorage& storage = _buffer->GetPixelStorage();
-    const std::vector<til::point>& allRegions = storage.GetAllRegion();
-    for (auto &origin : allRegions)
+    auto point = til::point(coord);
+    for (const auto& [origin, region] : _buffer->GetPixelStorage())
     {
-        til::size rectSize = storage.GetData(origin).get()->size / til::size(_fontSize);
+        til::size rectSize = region.get()->size / til::size(_fontSize);
         til::rectangle rect = til::rectangle(
-            origin.x(), origin.y(), origin.x() + rectSize.width(), origin.y() + rectSize.height());
+            static_cast<ptrdiff_t>(origin.X), static_cast<ptrdiff_t>(origin.Y),
+            origin.X + rectSize.width(), origin.Y + rectSize.height());
 
-        auto point = til::point(coord);
         if (rect.contains(point))
         {
-            auto newOrigin = til::point(point.x() - origin.x(), point.y() - origin.y());
+            auto newOrigin = til::point(point.x() - origin.X, point.y() - origin.Y);
             return Microsoft::Console::Render::RenderAccessory{
                 coord,
                 { gsl::narrow_cast<SHORT>(newOrigin.x()), gsl::narrow_cast<SHORT>(newOrigin.y()) },
-                storage.GetData(rect.origin())
+                region
             };
         }
-
     }
 
     return std::nullopt;
