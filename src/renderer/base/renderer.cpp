@@ -790,7 +790,7 @@ void Renderer::_PaintBufferOutputHelper(_In_ IRenderEngine* const pEngine,
                 auto accessory = _pData->GetAccessories(it.GetPos());
                 if (accessory.has_value())
                 {
-                    LOG_IF_FAILED(pEngine->PaintArbitrayPixels(accessory.value()));
+                    LOG_IF_FAILED(pEngine->PaintArbitraryPixels(accessory.value()));
                 }
 
             } while (it);

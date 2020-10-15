@@ -58,7 +58,7 @@ namespace Microsoft::Console::VirtualTerminal
         void _EventRasterAttributes(const wchar_t wch);
         void _EventColorIntroducer(const wchar_t wch);
 
-        size_t _attrPixalDenominator;
+        size_t _attrPixelDenominator;
         size_t _attrPixelNumerator;
         size_t _attrHorizontalSize;
         size_t _attrVerticalSize;

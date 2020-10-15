@@ -50,7 +50,7 @@ static constexpr bool _isControlCharacter(const wchar_t wch) noexcept
 }
 
 SixelParser::SixelParser(std::wstring_view data) :
-    _attrPixalDenominator(1),
+    _attrPixelDenominator(1),
     _attrPixelNumerator(2),
     _attrHorizontalSize(0),
     _attrVerticalSize(0),
@@ -72,7 +72,7 @@ SixelParser::SixelParser(std::wstring_view data) :
 }
 
 SixelParser::SixelParser(const gsl::span<const size_t> parameters, std::wstring_view data) :
-    _attrPixalDenominator(1),
+    _attrPixelDenominator(1),
     _attrPixelNumerator(2),
     _attrHorizontalSize(0),
     _attrVerticalSize(0),
@@ -398,7 +398,7 @@ void SixelParser::_ActionRasterAttribute() noexcept
     }
     if (params.size() > 1)
     {
-        _attrPixalDenominator = params.at(1);
+        _attrPixelDenominator = params.at(1);
     }
     if (params.size() > 2)
     {

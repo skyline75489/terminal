@@ -166,7 +166,7 @@ using namespace Microsoft::Console::Types;
     return S_OK;
 }
 
-[[nodiscard]] HRESULT VtEngine::PaintArbitrayPixels(const RenderAccessory& /*pixelRegion*/) noexcept
+[[nodiscard]] HRESULT VtEngine::PaintArbitraryPixels(const RenderAccessory& /*pixelRegion*/) noexcept
 {
     for (auto i = 0; i < 10; i++)
     {

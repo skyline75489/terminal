@@ -643,7 +643,7 @@ using namespace Microsoft::Console::Render;
     return S_OK;
 }
 
-[[nodiscard]] HRESULT GdiEngine::PaintArbitrayPixels(const RenderAccessory& /*pixelRegion*/) noexcept
+[[nodiscard]] HRESULT GdiEngine::PaintArbitraryPixels(const RenderAccessory& /*pixelRegion*/) noexcept
 {
     return S_OK;
 }

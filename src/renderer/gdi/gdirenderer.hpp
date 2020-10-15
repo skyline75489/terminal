@@ -53,7 +53,7 @@ namespace Microsoft::Console::Render
         [[nodiscard]] HRESULT PaintSelection(const SMALL_RECT rect) noexcept override;
 
         [[nodiscard]] HRESULT PaintCursor(const CursorOptions& options) noexcept override;
-        [[nodiscard]] HRESULT PaintArbitrayPixels(const RenderAccessory& accessory) noexcept override;
+        [[nodiscard]] HRESULT PaintArbitraryPixels(const RenderAccessory& accessory) noexcept override;
 
         [[nodiscard]] HRESULT UpdateDrawingBrushes(const TextAttribute& textAttributes,
                                                    const gsl::not_null<IRenderData*> pData,

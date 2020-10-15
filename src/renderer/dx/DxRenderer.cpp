@@ -1635,7 +1635,7 @@ CATCH_RETURN()
     return S_OK;
 }
 
-[[nodiscard]] HRESULT DxEngine::PaintArbitrayPixels(const RenderAccessory& accessory) noexcept
+[[nodiscard]] HRESULT DxEngine::PaintArbitraryPixels(const RenderAccessory& accessory) noexcept
 {
     const auto coordTarget = accessory.bitmapOrigin;
     const auto data = accessory.pixelRegion.get()->data.get();

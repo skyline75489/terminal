@@ -205,7 +205,7 @@ private:
     std::unordered_map<std::wstring, uint16_t> _hyperlinkCustomIdMap;
     uint16_t _currentHyperlinkId;
 
-    // storage for arbitary pixel drawing. 
+    // storage for arbitrary pixel drawing. 
     PixelStorage _pixelStorage;
 
     void _RefreshRowIDs(std::optional<SHORT> newRowWidth);

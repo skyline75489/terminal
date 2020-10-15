@@ -357,7 +357,7 @@ CATCH_RETURN();
     return S_FALSE;
 }
 
-[[nodiscard]] HRESULT UiaEngine::PaintArbitrayPixels(const RenderAccessory& /*pixelRegion*/) noexcept
+[[nodiscard]] HRESULT UiaEngine::PaintArbitraryPixels(const RenderAccessory& /*pixelRegion*/) noexcept
 {
     return S_FALSE;
 }
