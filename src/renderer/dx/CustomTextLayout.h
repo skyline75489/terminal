@@ -133,6 +133,7 @@ namespace Microsoft::Console::Render
         void _SplitCurrentRun(const UINT32 splitPosition);
         void _OrderRuns();
 
+        HRESULT _InitializeFontFallback();
         [[nodiscard]] HRESULT STDMETHODCALLTYPE _AnalyzeFontFallback(IDWriteTextAnalysisSource* const source, UINT32 textPosition, UINT32 textLength);
         [[nodiscard]] HRESULT STDMETHODCALLTYPE _SetMappedFont(UINT32 textPosition, UINT32 textLength, IDWriteFont* const font, FLOAT const scale);
 
@@ -171,6 +172,11 @@ namespace Microsoft::Console::Render
         const ::Microsoft::WRL::ComPtr<IDWriteFontFace1> _font;
         const ::Microsoft::WRL::ComPtr<IDWriteFontFace1> _fontItalic;
         IDWriteFontFace1* _fontInUse;
+
+        ::Microsoft::WRL::ComPtr<IDWriteTextFormat1> _fontFallbackTextFormat;
+        ::Microsoft::WRL::ComPtr<IDWriteFontFallback> _fontFallback;
+        ::Microsoft::WRL::ComPtr<IDWriteFontCollection> _fontFallbackCollection;
+        std::wstring _fontFallbackFamalyName;
 
         // Box drawing effect
         const ::Microsoft::WRL::ComPtr<IBoxDrawingEffect> _boxDrawingEffect;

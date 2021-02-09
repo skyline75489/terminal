@@ -41,6 +41,10 @@ CustomTextLayout::CustomTextLayout(gsl::not_null<IDWriteFactory1*> const factory
     _font{ font.get() },
     _fontItalic{ fontItalic.get() },
     _fontInUse{ font.get() },
+    _fontFallbackTextFormat{},
+    _fontFallback{},
+    _fontFallbackCollection{},
+    _fontFallbackFamalyName{},
     _boxDrawingEffect{ boxEffect },
     _localeName{},
     _numberSubstitution{},
@@ -54,6 +58,7 @@ CustomTextLayout::CustomTextLayout(gsl::not_null<IDWriteFactory1*> const factory
     // Fetch the locale name out once now from the format
     _localeName.resize(gsl::narrow_cast<size_t>(format->GetLocaleNameLength()) + 1); // +1 for null
     THROW_IF_FAILED(format->GetLocaleName(_localeName.data(), gsl::narrow<UINT32>(_localeName.size())));
+    _InitializeFontFallback();
 }
 
 //Routine Description:
@@ -1225,6 +1230,34 @@ CATCH_RETURN();
 }
 #pragma endregion
 
+// Routine Description:
+// - 
+// Arguments:
+HRESULT CustomTextLayout::_InitializeFontFallback()
+{
+    if (FAILED(_formatInUse->QueryInterface(IID_PPV_ARGS(&_fontFallbackTextFormat))))
+    {
+        // If IDWriteTextFormat1 does not exist, return directly as this OS version doesn't have font fallback.
+        return S_FALSE;
+    }
+    RETURN_HR_IF_NULL(E_NOINTERFACE, _fontFallbackTextFormat);
+
+    RETURN_IF_FAILED(_fontFallbackTextFormat->GetFontFallback(&_fontFallback));
+    RETURN_IF_FAILED(_fontFallbackTextFormat->GetFontCollection(&_fontFallbackCollection));
+
+    _fontFallbackFamalyName.resize(gsl::narrow_cast<size_t>(_fontFallbackTextFormat->GetFontFamilyNameLength()) + 1);
+    RETURN_IF_FAILED(_fontFallbackTextFormat->GetFontFamilyName(_fontFallbackFamalyName.data(), gsl::narrow<UINT32>(_fontFallbackFamalyName.size())));
+
+    if (!_fontFallback)
+    {
+        ::Microsoft::WRL::ComPtr<IDWriteFactory2> factory2;
+        RETURN_IF_FAILED(_factory.As(&factory2));
+        factory2->GetSystemFontFallback(&_fontFallback);
+    }
+
+    return S_OK;
+}
+
 #pragma region internal methods for mimicking text analyzer pattern but for font fallback
 // Routine Description:
 // - Mimics an IDWriteTextAnalyser but for font fallback calculations.
@@ -1240,35 +1273,8 @@ CATCH_RETURN();
 {
     try
     {
-        // Get the font fallback first
-        ::Microsoft::WRL::ComPtr<IDWriteTextFormat1> format1;
-        if (FAILED(_formatInUse->QueryInterface(IID_PPV_ARGS(&format1))))
-        {
-            // If IDWriteTextFormat1 does not exist, return directly as this OS version doesn't have font fallback.
-            return S_FALSE;
-        }
-        RETURN_HR_IF_NULL(E_NOINTERFACE, format1);
-
-        ::Microsoft::WRL::ComPtr<IDWriteFontFallback> fallback;
-        RETURN_IF_FAILED(format1->GetFontFallback(&fallback));
-
-        ::Microsoft::WRL::ComPtr<IDWriteFontCollection> collection;
-        RETURN_IF_FAILED(format1->GetFontCollection(&collection));
-
-        std::wstring familyName;
-        familyName.resize(gsl::narrow_cast<size_t>(format1->GetFontFamilyNameLength()) + 1);
-        RETURN_IF_FAILED(format1->GetFontFamilyName(familyName.data(), gsl::narrow<UINT32>(familyName.size())));
-
-        const auto weight = format1->GetFontWeight();
-        const auto style = format1->GetFontStyle();
-        const auto stretch = format1->GetFontStretch();
-
-        if (!fallback)
-        {
-            ::Microsoft::WRL::ComPtr<IDWriteFactory2> factory2;
-            RETURN_IF_FAILED(_factory.As(&factory2));
-            factory2->GetSystemFontFallback(&fallback);
-        }
+        // Return if the font fallback is not available.
+        RETURN_HR_IF_NULL(E_NOINTERFACE, _fontFallbackTextFormat);
 
         // Walk through and analyze the entire string
         while (textLength > 0)
@@ -1277,17 +1283,21 @@ CATCH_RETURN();
             ::Microsoft::WRL::ComPtr<IDWriteFont> mappedFont;
             FLOAT scale = 0.0f;
 
-            fallback->MapCharacters(source,
-                                    textPosition,
-                                    textLength,
-                                    collection.Get(),
-                                    familyName.data(),
-                                    weight,
-                                    style,
-                                    stretch,
-                                    &mappedLength,
-                                    &mappedFont,
-                                    &scale);
+            const auto weight = _fontFallbackTextFormat->GetFontWeight();
+            const auto style = _fontFallbackTextFormat->GetFontStyle();
+            const auto stretch = _fontFallbackTextFormat->GetFontStretch();
+
+            _fontFallback->MapCharacters(source,
+                                         textPosition,
+                                         textLength,
+                                         _fontFallbackCollection.Get(),
+                                         _fontFallbackFamalyName.data(),
+                                         weight,
+                                         style,
+                                         stretch,
+                                         &mappedLength,
+                                         &mappedFont,
+                                         &scale);
 
             RETURN_IF_FAILED(_SetMappedFont(textPosition, mappedLength, mappedFont.Get(), scale));
 
