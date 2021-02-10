@@ -45,19 +45,18 @@ namespace Microsoft::Console::Render
         // The DirectWrite font face to use while calculating layout (by default)
         [[nodiscard]] Microsoft::WRL::ComPtr<IDWriteFontFace1> DefaultFontFace() noexcept;
 
-        // Box drawing scaling effects that are cached for the base font across layouts
-        [[nodiscard]] Microsoft::WRL::ComPtr<IBoxDrawingEffect> DefaultBoxDrawingEffect() noexcept;
-
         // The italic variant of the format object representing the size and other text properties for italic text
         [[nodiscard]] Microsoft::WRL::ComPtr<IDWriteTextFormat> ItalicTextFormat() noexcept;
 
         // The italic variant of the font face to use while calculating layout for italic text
         [[nodiscard]] Microsoft::WRL::ComPtr<IDWriteFontFace1> ItalicFontFace() noexcept;
 
-        // Box drawing scaling effects that are cached for the italic font across layouts
-        [[nodiscard]] Microsoft::WRL::ComPtr<IBoxDrawingEffect> ItalicBoxDrawingEffect() noexcept;
+        // Box drawing scaling effects that are cached for the base font across layouts
+        [[nodiscard]] Microsoft::WRL::ComPtr<IBoxDrawingEffect> DefaultBoxDrawingEffect() noexcept;
 
         [[nodiscard]] HRESULT UpdateFont(const FontInfoDesired& desired, FontInfo& fiFontInfo, const int dpi) noexcept;
+
+        [[nodiscard]] static HRESULT STDMETHODCALLTYPE s_CalculateBoxEffect(IDWriteTextFormat* format, size_t widthPixels, IDWriteFontFace1* face, float fontScale, IBoxDrawingEffect** effect) noexcept;
 
     private:
         [[nodiscard]] ::Microsoft::WRL::ComPtr<IDWriteFontFace1> _ResolveFontFaceWithFallback(std::wstring& familyName,
@@ -77,7 +76,6 @@ namespace Microsoft::Console::Render
         [[nodiscard]] std::wstring _GetFontFamilyName(gsl::not_null<IDWriteFontFamily*> const fontFamily,
                                                       std::wstring& localeName) const;
 
-        [[nodiscard]] static HRESULT STDMETHODCALLTYPE s_CalculateBoxEffect(IDWriteTextFormat* format, size_t widthPixels, IDWriteFontFace1* face, float fontScale, IBoxDrawingEffect** effect) noexcept;
 
         ::Microsoft::WRL::ComPtr<IDWriteFactory1> _dwriteFactory;
 
@@ -88,7 +86,6 @@ namespace Microsoft::Console::Render
         ::Microsoft::WRL::ComPtr<IDWriteFontFace1> _dwriteFontFaceItalic;
 
         ::Microsoft::WRL::ComPtr<IBoxDrawingEffect> _boxDrawingEffect;
-        ::Microsoft::WRL::ComPtr<IBoxDrawingEffect> _boxDrawingEffectItalic;
 
         HRESULT _hrSystemFontFallback;
         ::Microsoft::WRL::ComPtr<IDWriteFontFallback> _systemFontFallback;
