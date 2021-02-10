@@ -45,11 +45,23 @@ namespace Microsoft::Console::Render
         // The DirectWrite font face to use while calculating layout (by default)
         [[nodiscard]] Microsoft::WRL::ComPtr<IDWriteFontFace1> DefaultFontFace() noexcept;
 
+        // The bold variant of the format object representing the size and other text properties for bold text
+        [[nodiscard]] Microsoft::WRL::ComPtr<IDWriteTextFormat> BoldTextFormat() noexcept;
+
+        // The bold variant of the font face to use while calculating layout for bold text
+        [[nodiscard]] Microsoft::WRL::ComPtr<IDWriteFontFace1> BoldFontFace() noexcept;
+
         // The italic variant of the format object representing the size and other text properties for italic text
         [[nodiscard]] Microsoft::WRL::ComPtr<IDWriteTextFormat> ItalicTextFormat() noexcept;
 
         // The italic variant of the font face to use while calculating layout for italic text
         [[nodiscard]] Microsoft::WRL::ComPtr<IDWriteFontFace1> ItalicFontFace() noexcept;
+
+        // The bold italic variant of the format object representing the size and other text properties for italic text
+        [[nodiscard]] Microsoft::WRL::ComPtr<IDWriteTextFormat> BoldItalicTextFormat() noexcept;
+
+        // The bold italic variant of the font face to use while calculating layout for bold italic text
+        [[nodiscard]] Microsoft::WRL::ComPtr<IDWriteFontFace1> BoldItalicFontFace() noexcept;
 
         // Box drawing scaling effects that are cached for the base font across layouts
         [[nodiscard]] Microsoft::WRL::ComPtr<IBoxDrawingEffect> DefaultBoxDrawingEffect() noexcept;
@@ -80,10 +92,16 @@ namespace Microsoft::Console::Render
         ::Microsoft::WRL::ComPtr<IDWriteFactory1> _dwriteFactory;
 
         ::Microsoft::WRL::ComPtr<IDWriteTextAnalyzer1> _dwriteTextAnalyzer;
+
         ::Microsoft::WRL::ComPtr<IDWriteTextFormat> _dwriteTextFormat;
+        ::Microsoft::WRL::ComPtr<IDWriteTextFormat> _dwriteTextFormatBold;
         ::Microsoft::WRL::ComPtr<IDWriteTextFormat> _dwriteTextFormatItalic;
+        ::Microsoft::WRL::ComPtr<IDWriteTextFormat> _dwriteTextFormatBoldItalic;
+
         ::Microsoft::WRL::ComPtr<IDWriteFontFace1> _dwriteFontFace;
+        ::Microsoft::WRL::ComPtr<IDWriteFontFace1> _dwriteFontFaceBold;
         ::Microsoft::WRL::ComPtr<IDWriteFontFace1> _dwriteFontFaceItalic;
+        ::Microsoft::WRL::ComPtr<IDWriteFontFace1> _dwriteFontFaceBoldItalic;
 
         ::Microsoft::WRL::ComPtr<IBoxDrawingEffect> _boxDrawingEffect;
 

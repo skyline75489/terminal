@@ -60,6 +60,16 @@ DxFontRenderData::DxFontRenderData(::Microsoft::WRL::ComPtr<IDWriteFactory1> dwr
     return _dwriteFontFace;
 }
 
+[[nodiscard]] Microsoft::WRL::ComPtr<IDWriteTextFormat> DxFontRenderData::BoldTextFormat() noexcept
+{
+    return _dwriteTextFormatBold;
+}
+
+[[nodiscard]] Microsoft::WRL::ComPtr<IDWriteFontFace1> DxFontRenderData::BoldFontFace() noexcept
+{
+    return _dwriteFontFaceBold;
+}
+
 [[nodiscard]] Microsoft::WRL::ComPtr<IDWriteTextFormat> DxFontRenderData::ItalicTextFormat() noexcept
 {
     return _dwriteTextFormatItalic;
@@ -68,6 +78,16 @@ DxFontRenderData::DxFontRenderData(::Microsoft::WRL::ComPtr<IDWriteFactory1> dwr
 [[nodiscard]] Microsoft::WRL::ComPtr<IDWriteFontFace1> DxFontRenderData::ItalicFontFace() noexcept
 {
     return _dwriteFontFaceItalic;
+}
+
+[[nodiscard]] Microsoft::WRL::ComPtr<IDWriteTextFormat> DxFontRenderData::BoldItalicTextFormat() noexcept
+{
+    return _dwriteTextFormatBoldItalic;
+}
+
+[[nodiscard]] Microsoft::WRL::ComPtr<IDWriteFontFace1> DxFontRenderData::BoldItalicFontFace() noexcept
+{
+    return _dwriteFontFaceBoldItalic;
 }
 
 [[nodiscard]] Microsoft::WRL::ComPtr<IBoxDrawingEffect> DxFontRenderData::DefaultBoxDrawingEffect() noexcept
@@ -217,8 +237,37 @@ DxFontRenderData::DxFontRenderData(::Microsoft::WRL::ComPtr<IDWriteFactory1> dwr
 
         THROW_IF_FAILED(format.As(&_dwriteTextFormat));
 
-        // We also need to create an italic variant of the font face and text
-        // format, based on the same parameters, but using an italic style.
+        _dwriteFontFace = face;
+
+        Microsoft::WRL::ComPtr<IDWriteTextAnalyzer> analyzer;
+        THROW_IF_FAILED(_dwriteFactory->CreateTextAnalyzer(&analyzer));
+        THROW_IF_FAILED(analyzer.As(&_dwriteTextAnalyzer));
+
+        // We also need to create bold, italic & bold italic variant of the font face and text
+        // format, based on the same parameters.
+
+        // Bold
+        std::wstring fontNameBold = fontName;
+        DWRITE_FONT_WEIGHT weightBold = DWRITE_FONT_WEIGHT_BOLD;
+        DWRITE_FONT_STYLE styleBold = style;
+        DWRITE_FONT_STRETCH stretchBold = stretch;
+
+        const auto faceBold = _ResolveFontFaceWithFallback(fontNameBold, weightBold, stretchBold, styleBold, fontLocaleName);
+
+        Microsoft::WRL::ComPtr<IDWriteTextFormat> formatBold;
+        THROW_IF_FAILED(_dwriteFactory->CreateTextFormat(fontNameBold.data(),
+                                                         nullptr,
+                                                         weightBold,
+                                                         styleBold,
+                                                         stretchBold,
+                                                         fontSize,
+                                                         localeName.data(),
+                                                         &formatBold));
+
+        THROW_IF_FAILED(formatBold.As(&_dwriteTextFormatBold));
+        _dwriteFontFaceBold = faceBold;
+
+        // Italic
         std::wstring fontNameItalic = fontName;
         DWRITE_FONT_WEIGHT weightItalic = weight;
         DWRITE_FONT_STYLE styleItalic = DWRITE_FONT_STYLE_ITALIC;
@@ -237,13 +286,30 @@ DxFontRenderData::DxFontRenderData(::Microsoft::WRL::ComPtr<IDWriteFactory1> dwr
                                                          &formatItalic));
 
         THROW_IF_FAILED(formatItalic.As(&_dwriteTextFormatItalic));
-
-        Microsoft::WRL::ComPtr<IDWriteTextAnalyzer> analyzer;
-        THROW_IF_FAILED(_dwriteFactory->CreateTextAnalyzer(&analyzer));
-        THROW_IF_FAILED(analyzer.As(&_dwriteTextAnalyzer));
-
-        _dwriteFontFace = face;
         _dwriteFontFaceItalic = faceItalic;
+
+
+        // Bold Italic
+        std::wstring fontNameBoldItalic = fontName;
+        DWRITE_FONT_WEIGHT weightBoldItalic = DWRITE_FONT_WEIGHT_BOLD;
+        DWRITE_FONT_STYLE styleBoldItalic = DWRITE_FONT_STYLE_ITALIC;
+        DWRITE_FONT_STRETCH stretchBoldItalic = stretch;
+
+        const auto faceBoldItalic = _ResolveFontFaceWithFallback(fontNameBoldItalic, weightBoldItalic, stretchBoldItalic, styleBoldItalic, fontLocaleName);
+
+        Microsoft::WRL::ComPtr<IDWriteTextFormat> formatBoldItalic;
+        THROW_IF_FAILED(_dwriteFactory->CreateTextFormat(fontNameBoldItalic.data(),
+                                                         nullptr,
+                                                         weightBoldItalic,
+                                                         styleBoldItalic,
+                                                         stretchBoldItalic,
+                                                         fontSize,
+                                                         localeName.data(),
+                                                         &formatBoldItalic));
+
+        THROW_IF_FAILED(formatBoldItalic.As(&_dwriteTextFormatBoldItalic));
+        _dwriteFontFaceBoldItalic = faceBoldItalic;
+
 
         THROW_IF_FAILED(_dwriteTextFormat->SetLineSpacing(lineSpacing.method, lineSpacing.height, lineSpacing.baseline));
         THROW_IF_FAILED(_dwriteTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR));

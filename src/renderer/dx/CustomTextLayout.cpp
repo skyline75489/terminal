@@ -137,8 +137,26 @@ CATCH_RETURN()
                                                                FLOAT originY) noexcept
 {
     const auto drawingContext = static_cast<const DrawingContext*>(clientDrawingContext);
-    _formatInUse = drawingContext->useItalicFont ? _fontRenderData->ItalicTextFormat().Get() : _fontRenderData->DefaultTextFormat().Get();
-    _fontInUse = drawingContext->useItalicFont ? _fontRenderData->ItalicFontFace().Get() : _fontRenderData->DefaultFontFace().Get();
+    if (drawingContext->useBoldFont && drawingContext->useItalicFont)
+    {
+        _formatInUse = _fontRenderData->BoldItalicTextFormat().Get();
+        _fontInUse = _fontRenderData->BoldItalicFontFace().Get();
+    }
+    else if (drawingContext->useBoldFont)
+    {
+        _formatInUse = _fontRenderData->BoldTextFormat().Get();
+        _fontInUse = _fontRenderData->BoldFontFace().Get();
+    }
+    else if (drawingContext->useItalicFont)
+    {
+        _formatInUse = _fontRenderData->ItalicTextFormat().Get();
+        _fontInUse = _fontRenderData->ItalicFontFace().Get();
+    }
+    else
+    {
+        _formatInUse = _fontRenderData->DefaultTextFormat().Get();
+        _fontInUse = _fontRenderData->DefaultFontFace().Get();
+    }
 
     RETURN_IF_FAILED(_AnalyzeTextComplexity());
     RETURN_IF_FAILED(_AnalyzeRuns());

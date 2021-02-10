@@ -1914,6 +1914,7 @@ CATCH_RETURN()
     if (_drawingContext)
     {
         _drawingContext->forceGrayscaleAA = _ShouldForceGrayscaleAA();
+        _drawingContext->useBoldFont = textAttributes.IsBold();
         _drawingContext->useItalicFont = textAttributes.IsItalic();
     }
 
