@@ -20,6 +20,13 @@ DxFontRenderData::DxFontRenderData(::Microsoft::WRL::ComPtr<IDWriteFactory1> dwr
 
 [[nodiscard]] Microsoft::WRL::ComPtr<IDWriteTextAnalyzer1> DxFontRenderData::Analyzer() noexcept
 {
+    if (!_dwriteTextAnalyzer)
+    {
+        Microsoft::WRL::ComPtr<IDWriteTextAnalyzer> analyzer;
+        THROW_IF_FAILED(_dwriteFactory->CreateTextAnalyzer(&analyzer));
+        THROW_IF_FAILED(analyzer.As(&_dwriteTextAnalyzer));
+    }
+
     return _dwriteTextAnalyzer;
 }
 
@@ -105,10 +112,11 @@ DxFontRenderData::DxFontRenderData(::Microsoft::WRL::ComPtr<IDWriteFactory1> dwr
         DxFontInfo fontInfoItalic = _defaultFontInfo;
         fontInfoItalic.SetStyle(DWRITE_FONT_STYLE_ITALIC);
         THROW_IF_FAILED(fontInfoItalic.ToTextFormat(_dwriteFactory.Get(), _fontSize, localeName).As(&_dwriteTextFormatItalic));
-        THROW_IF_FAILED(_dwriteTextFormat->SetLineSpacing(_lineSpacing.method, _lineSpacing.height, _lineSpacing.baseline));
-        THROW_IF_FAILED(_dwriteTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR));
-        THROW_IF_FAILED(_dwriteTextFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP));
+        THROW_IF_FAILED(_dwriteTextFormatItalic->SetLineSpacing(_lineSpacing.method, _lineSpacing.height, _lineSpacing.baseline));
+        THROW_IF_FAILED(_dwriteTextFormatItalic->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR));
+        THROW_IF_FAILED(_dwriteTextFormatItalic->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP));
     }
+
     return _dwriteTextFormatItalic;
 }
 
@@ -119,7 +127,7 @@ DxFontRenderData::DxFontRenderData(::Microsoft::WRL::ComPtr<IDWriteFactory1> dwr
         DxFontInfo fontInfoItalic = _defaultFontInfo;
         fontInfoItalic.SetStyle(DWRITE_FONT_STYLE_ITALIC);
         std::wstring fontLocaleName = UserLocaleName();
-        const auto faceItalic = fontInfoItalic.ResolveFontFaceWithFallback(_dwriteFactory.Get(), fontLocaleName);
+        _dwriteFontFaceItalic = fontInfoItalic.ResolveFontFaceWithFallback(_dwriteFactory.Get(), fontLocaleName);
     }
 
     return _dwriteFontFaceItalic;
@@ -138,7 +146,9 @@ DxFontRenderData::DxFontRenderData(::Microsoft::WRL::ComPtr<IDWriteFactory1> dwr
     try
     {
         _dwriteFontFace.Reset();
+        _dwriteTextFormat.Reset();
         _dwriteFontFaceItalic.Reset();
+        _dwriteTextFormatItalic.Reset();
 
         _defaultFontInfo = DxFontInfo(desired.GetFaceName(),
                         desired.GetWeight(),
@@ -151,10 +161,6 @@ DxFontRenderData::DxFontRenderData(::Microsoft::WRL::ComPtr<IDWriteFactory1> dwr
         // It should have an integer pixel width by our math above.
         // Then below, apply the line spacing to the format to position the floating point pixel height characters
         // into a cell that has an integer pixel height leaving some padding above/below as necessary to round them out.
-
-        Microsoft::WRL::ComPtr<IDWriteTextAnalyzer> analyzer;
-        THROW_IF_FAILED(_dwriteFactory->CreateTextAnalyzer(&analyzer));
-        THROW_IF_FAILED(analyzer.As(&_dwriteTextAnalyzer));
 
         // Calculate and cache the box effect for the base font. Scale is 1.0f because the base font is exactly the scale we want already.
         RETURN_IF_FAILED(s_CalculateBoxEffect(DefaultTextFormat().Get(), _glyphCell.width(), DefaultFontFace().Get(), 1.0f, &_boxDrawingEffect));
