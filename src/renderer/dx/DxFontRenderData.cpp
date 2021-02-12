@@ -99,8 +99,14 @@ DxFontRenderData::DxFontRenderData(::Microsoft::WRL::ComPtr<IDWriteFactory1> dwr
     return _dwriteFontFace;
 }
 
-[[nodiscard]] Microsoft::WRL::ComPtr<IBoxDrawingEffect> DxFontRenderData::DefaultBoxDrawingEffect() noexcept
+[[nodiscard]] Microsoft::WRL::ComPtr<IBoxDrawingEffect> DxFontRenderData::DefaultBoxDrawingEffect()
 {
+    if (!_boxDrawingEffect)
+    {
+        // Calculate and cache the box effect for the base font. Scale is 1.0f because the base font is exactly the scale we want already.
+        THROW_IF_FAILED(s_CalculateBoxEffect(DefaultTextFormat().Get(), _glyphCell.width(), DefaultFontFace().Get(), 1.0f, &_boxDrawingEffect));
+    }
+
     return _boxDrawingEffect;
 }
 
@@ -161,9 +167,6 @@ DxFontRenderData::DxFontRenderData(::Microsoft::WRL::ComPtr<IDWriteFactory1> dwr
         // It should have an integer pixel width by our math above.
         // Then below, apply the line spacing to the format to position the floating point pixel height characters
         // into a cell that has an integer pixel height leaving some padding above/below as necessary to round them out.
-
-        // Calculate and cache the box effect for the base font. Scale is 1.0f because the base font is exactly the scale we want already.
-        RETURN_IF_FAILED(s_CalculateBoxEffect(DefaultTextFormat().Get(), _glyphCell.width(), DefaultFontFace().Get(), 1.0f, &_boxDrawingEffect));
     }
     CATCH_RETURN();
 

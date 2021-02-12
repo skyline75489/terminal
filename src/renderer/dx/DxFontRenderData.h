@@ -49,7 +49,7 @@ namespace Microsoft::Console::Render
         [[nodiscard]] Microsoft::WRL::ComPtr<IDWriteFontFace1> DefaultFontFace() noexcept;
 
         // Box drawing scaling effects that are cached for the base font across layouts
-        [[nodiscard]] Microsoft::WRL::ComPtr<IBoxDrawingEffect> DefaultBoxDrawingEffect() noexcept;
+        [[nodiscard]] Microsoft::WRL::ComPtr<IBoxDrawingEffect> DefaultBoxDrawingEffect();
 
         // The italic variant of the format object representing the size and other text properties for italic text
         [[nodiscard]] Microsoft::WRL::ComPtr<IDWriteTextFormat> ItalicTextFormat() noexcept;
