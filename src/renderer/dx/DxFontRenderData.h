@@ -5,6 +5,7 @@
 
 #include "../../renderer/inc/FontInfoDesired.hpp"
 #include "BoxDrawingEffect.h"
+#include "DxFontInfo.h"
 
 #include <dwrite.h>
 #include <dwrite_1.h>
@@ -61,20 +62,8 @@ namespace Microsoft::Console::Render
         [[nodiscard]] static HRESULT STDMETHODCALLTYPE s_CalculateBoxEffect(IDWriteTextFormat* format, size_t widthPixels, IDWriteFontFace1* face, float fontScale, IBoxDrawingEffect** effect) noexcept;
 
     private:
-        [[nodiscard]] ::Microsoft::WRL::ComPtr<IDWriteFontFace1> _ResolveFontFaceWithFallback(std::wstring& familyName,
-                                                                                              DWRITE_FONT_WEIGHT& weight,
-                                                                                              DWRITE_FONT_STRETCH& stretch,
-                                                                                              DWRITE_FONT_STYLE& style,
-                                                                                              std::wstring& localeName) const;
 
-        [[nodiscard]] ::Microsoft::WRL::ComPtr<IDWriteFontFace1> _FindFontFace(std::wstring& familyName,
-                                                                               DWRITE_FONT_WEIGHT& weight,
-                                                                               DWRITE_FONT_STRETCH& stretch,
-                                                                               DWRITE_FONT_STYLE& style,
-                                                                               std::wstring& localeName) const;
-
-        [[nodiscard]] std::wstring _GetFontFamilyName(gsl::not_null<IDWriteFontFamily*> const fontFamily,
-                                                      std::wstring& localeName) const;
+        void _BuildDefaultFontMetrics(const FontInfoDesired& desired, FontInfo& actual, const int dpi);
 
         ::Microsoft::WRL::ComPtr<IDWriteFactory1> _dwriteFactory;
 
@@ -89,8 +78,12 @@ namespace Microsoft::Console::Render
         ::Microsoft::WRL::ComPtr<IDWriteFontFallback> _systemFontFallback;
         std::wstring _userLocaleName;
 
+        DxFontInfo _defaultFontInfo;
+
+        float _fontSize;
         til::size _glyphCell;
 
+        DWRITE_LINE_SPACING _lineSpacing;
         LineMetrics _lineMetrics;
     };
 }
