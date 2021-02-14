@@ -81,7 +81,6 @@ DxFontRenderData::DxFontRenderData(::Microsoft::WRL::ComPtr<IDWriteFactory1> dwr
         THROW_IF_FAILED(_dwriteTextFormat->SetLineSpacing(_lineSpacing.method, _lineSpacing.height, _lineSpacing.baseline));
         THROW_IF_FAILED(_dwriteTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR));
         THROW_IF_FAILED(_dwriteTextFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP));
-
     }
     return _dwriteTextFormat;
 }
@@ -157,9 +156,9 @@ DxFontRenderData::DxFontRenderData(::Microsoft::WRL::ComPtr<IDWriteFactory1> dwr
         _dwriteTextFormatItalic.Reset();
 
         _defaultFontInfo = DxFontInfo(desired.GetFaceName(),
-                        desired.GetWeight(),
-                        DWRITE_FONT_STYLE_NORMAL,
-                        DWRITE_FONT_STRETCH_NORMAL);
+                                      desired.GetWeight(),
+                                      DWRITE_FONT_STYLE_NORMAL,
+                                      DWRITE_FONT_STRETCH_NORMAL);
 
         _BuildDefaultFontMetrics(desired, actual, dpi);
 
@@ -535,7 +534,7 @@ void DxFontRenderData::_BuildDefaultFontMetrics(const FontInfoDesired& desired, 
     // or rounding or scaling manipulation.
     const COORD unscaled = desired.GetEngineSize();
 
-    const COORD scaled = coordSize; 
+    const COORD scaled = coordSize;
 
     actual.SetFromEngine(_defaultFontInfo.GetFamilyName(),
                          desired.GetFamily(),

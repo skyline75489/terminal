@@ -46,7 +46,7 @@ namespace Microsoft::Console::Render
         [[nodiscard]] Microsoft::WRL::ComPtr<IDWriteTextFormat> DefaultTextFormat();
 
         // The DirectWrite font face to use while calculating layout (by default)
-        [[nodiscard]] Microsoft::WRL::ComPtr<IDWriteFontFace1> DefaultFontFace() ;
+        [[nodiscard]] Microsoft::WRL::ComPtr<IDWriteFontFace1> DefaultFontFace();
 
         // Box drawing scaling effects that are cached for the base font across layouts
         [[nodiscard]] Microsoft::WRL::ComPtr<IBoxDrawingEffect> DefaultBoxDrawingEffect();
@@ -62,7 +62,6 @@ namespace Microsoft::Console::Render
         [[nodiscard]] static HRESULT STDMETHODCALLTYPE s_CalculateBoxEffect(IDWriteTextFormat* format, size_t widthPixels, IDWriteFontFace1* face, float fontScale, IBoxDrawingEffect** effect) noexcept;
 
     private:
-
         void _BuildDefaultFontMetrics(const FontInfoDesired& desired, FontInfo& actual, const int dpi);
 
         ::Microsoft::WRL::ComPtr<IDWriteFactory1> _dwriteFactory;

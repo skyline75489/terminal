@@ -128,9 +128,9 @@ void DxFontInfo::SetFromEngine(const std::wstring_view familyName,
             }
 
             SetFromEngine(fallbackFace,
-                                   DWRITE_FONT_WEIGHT_NORMAL,
-                                   DWRITE_FONT_STYLE_NORMAL,
-                                   DWRITE_FONT_STRETCH_NORMAL);
+                          DWRITE_FONT_WEIGHT_NORMAL,
+                          DWRITE_FONT_STYLE_NORMAL,
+                          DWRITE_FONT_STRETCH_NORMAL);
             face = _FindFontFace(dwriteFactory, localeName);
 
             if (face)
@@ -149,13 +149,13 @@ void DxFontInfo::SetFromEngine(const std::wstring_view familyName,
 {
     Microsoft::WRL::ComPtr<IDWriteTextFormat> format;
     THROW_IF_FAILED(dwriteFactory->CreateTextFormat(GetFamilyName().data(),
-                                                     nullptr,
-                                                     GetWeight(),
-                                                     GetStyle(),
-                                                     GetStretch(),
-                                                     fontSize,
-                                                     localeName.data(),
-                                                     &format));
+                                                    nullptr,
+                                                    GetWeight(),
+                                                    GetStyle(),
+                                                    GetStretch(),
+                                                    fontSize,
+                                                    localeName.data(),
+                                                    &format));
     return format;
 }
 
@@ -214,7 +214,7 @@ void DxFontInfo::SetFromEngine(const std::wstring_view familyName,
 // Return Value:
 // - Localized string name of the font family
 [[nodiscard]] std::wstring DxFontInfo::_GetFontFamilyName(gsl::not_null<IDWriteFontFamily*> const fontFamily,
-                                                                std::wstring& localeName)
+                                                          std::wstring& localeName)
 {
     // See: https://docs.microsoft.com/en-us/windows/win32/api/dwrite/nn-dwrite-idwritefontcollection
     Microsoft::WRL::ComPtr<IDWriteLocalizedStrings> familyNames;

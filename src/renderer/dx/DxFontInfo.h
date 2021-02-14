@@ -48,7 +48,6 @@ namespace Microsoft::Console::Render
                                                                                              std::wstring& localeName);
         [[nodiscard]] ::Microsoft::WRL::ComPtr<IDWriteTextFormat> ToTextFormat(IDWriteFactory1* dwriteFactory, const float fontSize, const std::wstring_view localeName);
 
-
     private:
         [[nodiscard]] ::Microsoft::WRL::ComPtr<IDWriteFontFace1> _FindFontFace(IDWriteFactory1* dwriteFactory, std::wstring& localeName);
 
