@@ -928,7 +928,10 @@ namespace winrt::TerminalApp::implementation
         else
         {
             std::wstring guidWString = Utils::GuidToString(profileGuid);
-
+            if (guidWString == L"{41b30339-b403-4581-8971-93823cc38a78}")
+            {
+                return NamedPipeConnection(L"\\\\.\\pipe\\LOCAL\\wt");
+            }
             StringMap envMap{};
             envMap.Insert(L"WT_PROFILE_ID", guidWString);
             envMap.Insert(L"WSLENV", L"WT_PROFILE_ID");

@@ -5,6 +5,7 @@
    -->
   <ItemGroup>
     <ClCompile Include="..\OutputStateMachineEngine.cpp" />
+    <ClCompile Include="..\TmuxEngine.cpp" />
     <ClCompile Include="..\stateMachine.cpp" />
     <ClCompile Include="..\telemetry.cpp" />
     <ClCompile Include="..\tracing.cpp" />
@@ -19,6 +20,7 @@
     <ClInclude Include="..\stateMachine.hpp" />
     <ClInclude Include="..\IStateMachineEngine.hpp" />
     <ClInclude Include="..\OutputStateMachineEngine.hpp" />
+    <ClInclude Include="..\TmuxEngine.hpp" />
     <ClInclude Include="..\telemetry.hpp" />
     <ClInclude Include="..\tracing.hpp" />
     <ClInclude Include="..\base64.hpp" />

@@ -22,6 +22,9 @@
     <ClInclude Include="EchoConnection.h">
       <DependentUpon>EchoConnection.idl</DependentUpon>
     </ClInclude>
+    <ClInclude Include="NamedPipeConnection.h">
+      <DependentUpon>NamedPipeConnection.idl</DependentUpon>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="init.cpp" />
@@ -34,6 +37,9 @@
     <ClCompile Include="EchoConnection.cpp">
       <DependentUpon>EchoConnection.idl</DependentUpon>
     </ClCompile>
+    <ClCompile Include="NamedPipeConnection.cpp">
+      <DependentUpon>NamedPipeConnection.idl</DependentUpon>
+    </ClCompile>
     <ClCompile Include="ConptyConnection.cpp">
       <DependentUpon>ConptyConnection.idl</DependentUpon>
     </ClCompile>
@@ -43,6 +49,7 @@
     <Midl Include="ITerminalConnection.idl" />
     <Midl Include="ConptyConnection.idl" />
     <Midl Include="EchoConnection.idl" />
+    <Midl Include="NamedPipeConnection.idl" />
     <Midl Include="AzureConnection.idl" />
   </ItemGroup>
   <ItemGroup>

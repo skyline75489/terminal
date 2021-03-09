@@ -4,6 +4,7 @@
 #include "precomp.h"
 
 #include "stateMachine.hpp"
+#include "TmuxEngine.hpp"
 #include "OutputStateMachineEngine.hpp"
 #include "base64.hpp"
 
@@ -12,6 +13,15 @@
 
 using namespace Microsoft::Console;
 using namespace Microsoft::Console::VirtualTerminal;
+
+static TmuxEngine tmuxEngine;
+
+static bool tmuxhandler(wchar_t c)
+{
+    tmuxEngine.ProcessCharacter(c);
+    return true;
+}
+
 
 // the console uses 0xffffffff as an "invalid color" value
 constexpr COLORREF INVALID_COLOR = 0xffffffff;
@@ -634,6 +644,74 @@ bool OutputStateMachineEngine::ActionCsiDispatch(const VTID id, const VTParamete
     _ClearLastChar();
 
     return success;
+}
+
+// Routine Description:
+// - Triggers the DcsDispatch action to indicate that the listener should handle
+//      a control sequence. Returns the handler function that is to be used to
+//      process the subsequent data string characters in the sequence.
+// Arguments:
+// - id - Identifier of the control sequence to dispatch.
+// - parameters - set of numeric parameters collected while parsing the sequence.
+// Return Value:
+// - the data string handler function or nullptr if the sequence is not supported
+IStateMachineEngine::StringHandler OutputStateMachineEngine::ActionDcsDispatch(const VTID id, const VTParameters parameters) noexcept
+{
+    if (id == 112 && parameters.at(0).value_or(0) == 1000)
+    {
+        CreateThread(
+            nullptr,
+            0,
+            [](LPVOID /*lpParameter*/) noexcept {
+
+              static HANDLE pipe = CreateNamedPipeW(
+                     L"\\\\.\\pipe\\LOCAL\\wt",
+                    PIPE_ACCESS_DUPLEX,
+                    PIPE_TYPE_BYTE | PIPE_WAIT,
+                    1,
+                    4096,
+                    4096,
+                    100,
+                    NULL);
+                BOOL result = ConnectNamedPipe(pipe, NULL);
+
+                if (!result) {
+                    std:: wcout << "Failed to make connection on named pipe." << std::endl;
+                    // look up error code here using GetLastError()
+                    CloseHandle(pipe); // close the pipe
+                    return gsl::narrow_cast<DWORD>(E_INVALIDARG);
+                }
+
+                tmuxEngine.SetPaneOutputCallback([](size_t /*paneId*/, wchar_t wch) {
+                    DWORD numBytesWritten = 0;
+                    BOOL result = WriteFile(
+                        pipe, // handle to our outbound pipe
+                        &wch, // data to send
+                        sizeof(wchar_t), // length of data to send (bytes)
+                        &numBytesWritten, // will store actual amount of data sent
+                        NULL // not using overlapped IO
+                );
+                      if (result) {
+                        std::wcout << "Number of bytes sent: " << numBytesWritten << std::endl;
+                    } else {
+                        std::wcout << "Failed to send data." << std::endl;
+                        }
+
+                        });
+
+                return gsl::narrow_cast<DWORD>(E_INVALIDARG);
+            },
+            this,
+            0,
+            nullptr);
+
+        return tmuxhandler;
+    }
+    StringHandler handler = nullptr;
+
+    _ClearLastChar();
+
+    return handler;
 }
 
 // Routine Description:

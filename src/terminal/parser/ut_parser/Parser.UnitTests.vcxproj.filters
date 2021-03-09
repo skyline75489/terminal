@@ -21,6 +21,9 @@
     <ClCompile Include="OutputEngineTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TmuxEngineTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="StateMachineTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
