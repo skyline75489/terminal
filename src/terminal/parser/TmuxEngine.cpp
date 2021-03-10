@@ -70,6 +70,7 @@ void TmuxEngine::_EnterGround() noexcept
     _token.clear();
     _paneId = 0;
     _paneIdReady = false;
+    _paneEscape = false;
     _outputLine.clear();
     _notification.clear();
     _notificationParam.clear();
@@ -230,6 +231,11 @@ void TmuxEngine::_EventPaneOutput(const wchar_t wch) noexcept
     else if (wch == TMUX_TOKEN_ESCAPE)
     {
         // Begin of escape
+        if (_paneEscape)
+        {
+            // Send last character before processing this one.
+            _DispatchPaneOutput(_paneId, static_cast<wchar_t>(_paneEscapeOrd));
+        }
         _paneEscapeOrd = 0;
         _paneEscape = true;
     }
@@ -241,6 +247,10 @@ void TmuxEngine::_EventPaneOutput(const wchar_t wch) noexcept
             _paneEscape = false;
         }
 
+        if (wch == TMUX_TOKEN_LF)
+        {
+            // Ignore
+        }
         if (wch == TMUX_TOKEN_CR)
         {
             // End of pane output.

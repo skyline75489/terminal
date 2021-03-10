@@ -97,9 +97,8 @@ namespace winrt::Microsoft::Terminal::TerminalConnection::implementation
                 // else we call convertUTF8ChunkToUTF16 with an empty string_view to convert possible remaining partials to U+FFFD
             }
 
-            const HRESULT result{ til::u8u16(std::string_view{ _buffer.data(), read }, _u16Str, _u8State) };
             // Pass the output to our registered event handlers
-            _TerminalOutputHandlers(_u16Str);
+            _TerminalOutputHandlers(std::wstring{ _buffer.data(), read / 2 });
         }
 
         return 0;
