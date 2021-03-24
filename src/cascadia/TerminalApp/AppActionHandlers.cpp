@@ -17,7 +17,7 @@ using namespace winrt::Windows::Foundation::Collections;
 using namespace winrt::Windows::System;
 using namespace winrt::Microsoft::Terminal;
 using namespace winrt::Microsoft::Terminal::Settings::Model;
-using namespace winrt::Microsoft::Terminal::TerminalControl;
+using namespace winrt::Microsoft::Terminal::Control;
 using namespace winrt::Microsoft::Terminal::TerminalConnection;
 using namespace ::TerminalApp;
 
@@ -89,15 +89,23 @@ namespace winrt::TerminalApp::implementation
     void TerminalPage::_HandleNextTab(const IInspectable& /*sender*/,
                                       const ActionEventArgs& args)
     {
-        _SelectNextTab(true);
-        args.Handled(true);
+        const auto& realArgs = args.ActionArgs().try_as<NextTabArgs>();
+        if (realArgs)
+        {
+            _SelectNextTab(true, realArgs.SwitcherMode());
+            args.Handled(true);
+        }
     }
 
     void TerminalPage::_HandlePrevTab(const IInspectable& /*sender*/,
                                       const ActionEventArgs& args)
     {
-        _SelectNextTab(false);
-        args.Handled(true);
+        const auto& realArgs = args.ActionArgs().try_as<PrevTabArgs>();
+        if (realArgs)
+        {
+            _SelectNextTab(false, realArgs.SwitcherMode());
+            args.Handled(true);
+        }
     }
 
     void TerminalPage::_HandleSendInput(const IInspectable& /*sender*/,
@@ -376,7 +384,7 @@ namespace winrt::TerminalApp::implementation
                     if (const auto scheme = _settings.GlobalSettings().ColorSchemes().TryLookup(realArgs.SchemeName()))
                     {
                         auto controlSettings = activeControl.Settings().as<TerminalSettings>();
-                        controlSettings->ApplyColorScheme(scheme);
+                        controlSettings.ApplyColorScheme(scheme);
                         activeControl.UpdateSettings();
                         args.Handled(true);
                     }
@@ -658,9 +666,8 @@ namespace winrt::TerminalApp::implementation
             newTerminalArgs = NewTerminalArgs();
         }
 
-        auto [profileGuid, settings] = TerminalSettings::BuildSettings(_settings,
-                                                                       newTerminalArgs,
-                                                                       *_bindings);
+        const auto profileGuid{ _settings.GetProfileForArgs(newTerminalArgs) };
+        const auto settings{ TerminalSettings::CreateWithNewTerminalArgs(_settings, newTerminalArgs, *_bindings) };
 
         // Manually fill in the evaluated profile.
         newTerminalArgs.Profile(::Microsoft::Console::Utils::GuidToString(profileGuid));
