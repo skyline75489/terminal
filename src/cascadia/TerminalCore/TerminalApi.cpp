@@ -103,6 +103,36 @@ try
 }
 CATCH_LOG_RETURN_FALSE()
 
+// Routine Description:
+// - Perform a "Reverse line feed", essentially, the opposite of '\n'.
+//    Moves the cursor up one line, and tries to keep its position in the line
+// Parameters:
+// - None
+// Return value:
+// - True if handled successfully. False otherwise.
+bool Terminal::CursorReverseLineFeed() noexcept
+{
+    const SMALL_RECT viewport = GetViewport().ToInclusive();
+    const COORD oldCursorPosition = _buffer->GetCursor().GetPosition();
+    COORD newCursorPosition = { oldCursorPosition.X, oldCursorPosition.Y - 1 };
+    newCursorPosition = _buffer->ClampPositionWithinLine(newCursorPosition);
+
+    // If the cursor is at the top of the viewport, we don't want to shift the viewport up.
+    // We want it to stay exactly where it is.
+    // In that case, shift the buffer contents down, to emulate inserting a line
+    //      at the top of the buffer.
+    if (oldCursorPosition.Y > viewport.Top)
+    {
+        // Cursor is below the top line of the viewport
+        _AdjustCursorPosition(newCursorPosition);
+    }
+    else
+    {
+    }
+
+    return true;
+}
+
 // Method Description:
 // - deletes count characters starting from the cursor's current position
 // - it moves over the remaining text to 'replace' the deleted text

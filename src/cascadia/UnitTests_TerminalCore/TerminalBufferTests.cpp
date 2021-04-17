@@ -12,6 +12,8 @@
 
 using namespace winrt::Microsoft::Terminal::Core;
 using namespace Microsoft::Terminal::Core;
+using namespace Microsoft::Console::Types;
+using namespace Microsoft::Console::VirtualTerminal;
 
 using namespace WEX::Common;
 using namespace WEX::Logging;
@@ -40,6 +42,9 @@ class TerminalCoreUnitTests::TerminalBufferTests final
     TEST_METHOD(TestWrappingALongString);
 
     TEST_METHOD(DontSnapToOutputTest);
+
+    TEST_METHOD(LineFeedEscapeSequences);
+    TEST_METHOD(TestReverseLineFeed);
 
     TEST_METHOD(TestResetClearTabStops);
 
@@ -245,6 +250,131 @@ void TerminalBufferTests::DontSnapToOutputTest()
     VERIFY_ARE_EQUAL(0, seventhView.Top());
     VERIFY_ARE_EQUAL(TerminalViewHeight, seventhView.BottomExclusive());
     VERIFY_ARE_EQUAL(TerminalHistoryLength, term->_scrollOffset);
+}
+
+void TerminalBufferTests::LineFeedEscapeSequences()
+{
+    BEGIN_TEST_METHOD_PROPERTIES()
+        TEST_METHOD_PROPERTY(L"Data:withReturn", L"{true, false}")
+    END_TEST_METHOD_PROPERTIES()
+
+    bool withReturn;
+    VERIFY_SUCCEEDED(TestData::TryGetValue(L"withReturn", withReturn));
+
+    auto& termTb = *term->_buffer;
+    auto& termSm = *term->_stateMachine;
+    const auto initialView = term->GetViewport();
+    auto& cursor = termTb.GetCursor();
+
+    std::wstring escapeSequence;
+    if (withReturn)
+    {
+        Log::Comment(L"Testing line feed with carriage return (NEL).");
+        escapeSequence = L"\033E";
+    }
+    else
+    {
+        Log::Comment(L"Testing line feed without carriage return (IND).");
+        escapeSequence = L"\033D";
+    }
+
+    // We'll place the cursor in the center of the line.
+    // If we are performing a line feed with carriage return,
+    // the cursor should move to the leftmost column.
+    const short initialX = initialView.Width() / 2;
+    const short expectedX = withReturn ? 0 : initialX;
+
+    {
+        Log::Comment(L"Starting at the top of viewport");
+        const short initialY = 0;
+        const short expectedY = initialY + 1;
+        const short expectedViewportTop = term->GetViewport().Top();
+        cursor.SetPosition(COORD{ initialX, initialY });
+        termSm.ProcessString(escapeSequence);
+
+        VERIFY_ARE_EQUAL(expectedX, cursor.GetPosition().X);
+        VERIFY_ARE_EQUAL(expectedY, cursor.GetPosition().Y);
+        VERIFY_ARE_EQUAL(expectedViewportTop, term->GetViewport().Top());
+    }
+
+    {
+        Log::Comment(L"Starting at the bottom of viewport");
+        const short initialY = term->GetViewport().BottomInclusive();
+        const short expectedY = initialY + 1;
+        const short expectedViewportTop = term->GetViewport().Top() + 1;
+        cursor.SetPosition(COORD{ initialX, initialY });
+        termSm.ProcessString(escapeSequence);
+
+        VERIFY_ARE_EQUAL(expectedX, cursor.GetPosition().X);
+        VERIFY_ARE_EQUAL(expectedY, cursor.GetPosition().Y);
+        VERIFY_ARE_EQUAL(expectedViewportTop, term->GetViewport().Top());
+    }
+
+    {
+        Log::Comment(L"Starting at the bottom of the scroll margins");
+        // TODO: GH:1883
+    }
+}
+
+void TerminalBufferTests::TestReverseLineFeed()
+{
+    auto& termSm = *term->_stateMachine;
+    auto& termTb = *term->_buffer;
+
+    auto viewport = term->GetViewport();
+    auto& cursor = termTb.GetCursor();
+
+    const auto reverseLineFeed = L"\033M";
+
+    VERIFY_ARE_EQUAL(viewport.Top(), 0);
+
+    ////////////////////////////////////////////////////////////////////////
+    Log::Comment(L"Case 1: RI from below top of viewport");
+
+    termSm.ProcessString(L"foo\nfoo");
+    VERIFY_ARE_EQUAL(cursor.GetPosition().X, 3);
+    VERIFY_ARE_EQUAL(cursor.GetPosition().Y, 1);
+    VERIFY_ARE_EQUAL(viewport.Top(), 0);
+
+    termSm.ProcessString(reverseLineFeed);
+
+    VERIFY_ARE_EQUAL(cursor.GetPosition().X, 3);
+    VERIFY_ARE_EQUAL(cursor.GetPosition().Y, 0);
+    viewport = term->GetViewport();
+    VERIFY_ARE_EQUAL(viewport.Top(), 0);
+    Log::Comment(NoThrowString().Format(
+        L"viewport={L:%d,T:%d,R:%d,B:%d}",
+        viewport.Left(),
+        viewport.Top(),
+        viewport.RightInclusive(),
+        viewport.BottomInclusive()));
+
+    ////////////////////////////////////////////////////////////////////////
+    Log::Comment(L"Case 2: RI from top of viewport");
+    cursor.SetPosition({ 0, 0 });
+    termSm.ProcessString(L"123456789");
+    VERIFY_ARE_EQUAL(cursor.GetPosition().X, 9);
+    VERIFY_ARE_EQUAL(cursor.GetPosition().Y, 0);
+    VERIFY_ARE_EQUAL(term->GetViewport().Top(), 0);
+
+    termSm.ProcessString(reverseLineFeed);
+
+    VERIFY_ARE_EQUAL(cursor.GetPosition().X, 9);
+    VERIFY_ARE_EQUAL(cursor.GetPosition().Y, 0);
+    viewport = term->GetViewport();
+    VERIFY_ARE_EQUAL(viewport.Top(), 0);
+    Log::Comment(NoThrowString().Format(
+        L"viewport={L:%d,T:%d,R:%d,B:%d}",
+        viewport.Left(),
+        viewport.Top(),
+        viewport.RightInclusive(),
+        viewport.BottomInclusive()));
+    auto c = termTb.GetLastNonSpaceCharacter();
+    VERIFY_ARE_EQUAL(c.Y, 2); // This is the coordinates of the second "foo" from before.
+
+    ////////////////////////////////////////////////////////////////////////
+    Log::Comment(L"Case 3: RI from top of viewport, when viewport is below top of buffer");
+    // TODO: GH:1883
 }
 
 void TerminalBufferTests::_SetTabStops(std::list<short> columns, bool replace)

@@ -34,6 +34,7 @@ public:
     bool CursorUp(const size_t distance) noexcept override;
 
     bool LineFeed(const ::Microsoft::Console::VirtualTerminal::DispatchTypes::LineFeedType lineFeedType) noexcept override;
+    bool ReverseLineFeed() noexcept override; // RI
 
     bool EraseCharacters(const size_t numChars) noexcept override;
     bool WarningBell() noexcept override;

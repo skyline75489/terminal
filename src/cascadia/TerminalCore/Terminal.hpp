@@ -92,6 +92,7 @@ public:
     bool SetCursorVisibility(const bool visible) noexcept override;
     bool EnableCursorBlinking(const bool enable) noexcept override;
     bool CursorLineFeed(const bool withReturn) noexcept override;
+    bool CursorReverseLineFeed() noexcept override;
     bool DeleteCharacter(const size_t count) noexcept override;
     bool InsertCharacter(const size_t count) noexcept override;
     bool EraseCharacters(const size_t numChars) noexcept override;

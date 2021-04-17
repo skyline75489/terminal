@@ -93,8 +93,7 @@ try
     switch (lineFeedType)
     {
     case DispatchTypes::LineFeedType::DependsOnMode:
-        // There is currently no need for mode-specific line feeds in the Terminal,
-        // so for now we just treat them as a line feed without carriage return.
+        return _terminalApi.CursorLineFeed(true);
     case DispatchTypes::LineFeedType::WithoutReturn:
         return _terminalApi.CursorLineFeed(false);
     case DispatchTypes::LineFeedType::WithReturn:
@@ -104,6 +103,11 @@ try
     }
 }
 CATCH_LOG_RETURN_FALSE()
+
+bool TerminalDispatch::ReverseLineFeed() noexcept
+{
+    return _terminalApi.CursorReverseLineFeed();
+}
 
 bool TerminalDispatch::EraseCharacters(const size_t numChars) noexcept
 try
