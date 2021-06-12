@@ -40,6 +40,40 @@ Renderer::Renderer(IRenderData* pData,
         // NOTE: THIS CAN THROW IF MEMORY ALLOCATION FAILS.
         AddRenderEngine(engine);
     }
+
+    _cursorThrottleFunc = std::make_shared<til::throttled_func_trailing<COORD>>(
+        std::chrono::duration<int64_t, std::ratio<1, 10000000>>(1),
+        [this](COORD coord) {
+        // We first need to make sure the cursor position is within the buffer,
+        // otherwise testing for a double width character can throw an exception.
+        const auto& buffer = _pData->GetTextBuffer();
+        if (buffer.GetSize().IsInBounds(coord))
+        {
+            // We then calculate the region covered by the cursor. This requires
+            // converting the buffer coordinates to an equivalent range of screen
+            // cells for the cursor, taking line rendition into account.
+            const LineRendition lineRendition = buffer.GetLineRendition(coord.Y);
+            const SHORT cursorWidth = _pData->IsCursorDoubleWidth() ? 2 : 1;
+            const SMALL_RECT cursorRect = { coord.X, coord.Y, coord.X + cursorWidth - 1, coord.Y };
+            Viewport cursorView = Viewport::FromInclusive(BufferToScreenLine(cursorRect, lineRendition));
+
+            // The region is clamped within the viewport boundaries and we only
+            // trigger a redraw if the region is not empty.
+            Viewport view = _pData->GetViewport();
+            cursorView = view.Clamp(cursorView);
+
+            if (cursorView.IsValid())
+            {
+                const SMALL_RECT updateRect = view.ConvertToOrigin(cursorView).ToExclusive();
+                for (IRenderEngine* pEngine : _rgpEngines)
+                {
+                    LOG_IF_FAILED(pEngine->InvalidateCursor(&updateRect));
+                }
+
+                _NotifyPaintFrame();
+            }
+        }
+     });
 }
 
 // Routine Description:
@@ -265,35 +299,7 @@ void Renderer::TriggerRedraw(const COORD* const pcoord)
 // - <none>
 void Renderer::TriggerRedrawCursor(const COORD* const pcoord)
 {
-    // We first need to make sure the cursor position is within the buffer,
-    // otherwise testing for a double width character can throw an exception.
-    const auto& buffer = _pData->GetTextBuffer();
-    if (buffer.GetSize().IsInBounds(*pcoord))
-    {
-        // We then calculate the region covered by the cursor. This requires
-        // converting the buffer coordinates to an equivalent range of screen
-        // cells for the cursor, taking line rendition into account.
-        const LineRendition lineRendition = buffer.GetLineRendition(pcoord->Y);
-        const SHORT cursorWidth = _pData->IsCursorDoubleWidth() ? 2 : 1;
-        const SMALL_RECT cursorRect = { pcoord->X, pcoord->Y, pcoord->X + cursorWidth - 1, pcoord->Y };
-        Viewport cursorView = Viewport::FromInclusive(BufferToScreenLine(cursorRect, lineRendition));
-
-        // The region is clamped within the viewport boundaries and we only
-        // trigger a redraw if the region is not empty.
-        Viewport view = _pData->GetViewport();
-        cursorView = view.Clamp(cursorView);
-
-        if (cursorView.IsValid())
-        {
-            const SMALL_RECT updateRect = view.ConvertToOrigin(cursorView).ToExclusive();
-            for (IRenderEngine* pEngine : _rgpEngines)
-            {
-                LOG_IF_FAILED(pEngine->InvalidateCursor(&updateRect));
-            }
-
-            _NotifyPaintFrame();
-        }
-    }
+    _cursorThrottleFunc->Run(*pcoord);
 }
 
 // Routine Description:
