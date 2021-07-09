@@ -134,6 +134,25 @@ const std::wstring Microsoft::Terminal::Core::Terminal::GetHyperlinkCustomId(uin
 }
 
 // Method Description:
+// - Gets the count of regex pattern ids of a location
+// Arguments:
+// - The location
+// Return value:
+// - The count of pattern IDs of the location
+const size_t Terminal::GetPatternIdCount(const COORD location) const noexcept
+{
+    size_t count = 0;
+    _patternIntervalTree.visit_overlapping(
+        COORD{ location.X + 1, location.Y },
+        location,
+        [&](const interval_tree::IntervalTree<til::point, size_t>::interval& /*interval*/) {
+            count++;
+        }
+    );
+    return count;
+}
+
+// Method Description:
 // - Gets the regex pattern ids of a location
 // Arguments:
 // - The location
@@ -142,21 +161,14 @@ const std::wstring Microsoft::Terminal::Core::Terminal::GetHyperlinkCustomId(uin
 const std::vector<size_t> Terminal::GetPatternId(const COORD location) const noexcept
 {
     // Look through our interval tree for this location
-    const auto intervals = _patternIntervalTree.findOverlapping(COORD{ location.X + 1, location.Y }, location);
-    if (intervals.size() == 0)
-    {
-        return {};
-    }
-    else
-    {
-        std::vector<size_t> result{};
-        for (const auto& interval : intervals)
-        {
+    std::vector<size_t> result{};
+    _patternIntervalTree.visit_overlapping(
+        COORD{ location.X + 1, location.Y },
+        location,
+        [&](const interval_tree::IntervalTree<til::point, size_t>::interval& interval) {
             result.emplace_back(interval.value);
-        }
-        return result;
-    }
-    return {};
+        });
+    return result;
 }
 
 std::vector<Microsoft::Console::Types::Viewport> Terminal::GetSelectionRects() noexcept

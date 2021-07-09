@@ -740,6 +740,7 @@ void Renderer::_PaintBufferOutputHelper(_In_ IRenderEngine* const pEngine,
         auto color = it->TextAttr();
         // Retrieve the first pattern id
         auto patternIds = _pData->GetPatternId(target);
+        auto patternIdsCount = patternIds.size();
 
         // And hold the point where we should start drawing.
         auto screenPoint = target;
@@ -752,9 +753,6 @@ void Renderer::_PaintBufferOutputHelper(_In_ IRenderEngine* const pEngine,
             // when a run changes, but we will still need to know this color at the bottom
             // when we go to draw gridlines for the length of the run.
             const auto currentRunColor = color;
-
-            // Hold onto the current pattern id as well
-            const auto currentPatternId = patternIds;
 
             // Update the drawing brushes with our color.
             THROW_IF_FAILED(_UpdateDrawingBrushes(pEngine, currentRunColor, false));
@@ -785,16 +783,20 @@ void Renderer::_PaintBufferOutputHelper(_In_ IRenderEngine* const pEngine,
             do
             {
                 COORD thisPoint{ screenPoint.X + gsl::narrow<SHORT>(cols), screenPoint.Y };
-                const auto thisPointPatterns = _pData->GetPatternId(thisPoint);
-                if (color != it->TextAttr() || patternIds != thisPointPatterns)
+                const auto thisPointPatternsCount = _pData->GetPatternIdCount(thisPoint);
+                // Only check patternIds difference when at least one of them exists.
+                const auto needToCheckPatternId = patternIdsCount > 0 || thisPointPatternsCount > 0;
+                if (color != it->TextAttr() || (needToCheckPatternId && patternIds != _pData->GetPatternId(thisPoint)))
                 {
                     auto newAttr{ it->TextAttr() };
+                    const auto thisPointPatterns = _pData->GetPatternId(thisPoint);
                     // foreground doesn't matter for runs of spaces (!)
                     // if we trick it . . . we call Paint far fewer times for cmatrix
                     if (!_IsAllSpaces(it->Chars()) || !newAttr.HasIdenticalVisualRepresentationForBlankSpace(color, globalInvert) || patternIds != thisPointPatterns)
                     {
                         color = newAttr;
                         patternIds = thisPointPatterns;
+                        patternIdsCount = thisPointPatterns.size();
                         break; // vend this run
                     }
                 }
@@ -954,7 +956,7 @@ void Renderer::_PaintBufferOutputGridLineHelper(_In_ IRenderEngine* const pEngin
         if (_hoveredInterval->start <= coordTargetTil &&
             coordTargetTil <= _hoveredInterval->stop)
         {
-            if (_pData->GetPatternId(coordTarget).size() > 0)
+            if (_pData->GetPatternIdCount(coordTarget) > 0)
             {
                 lines |= IRenderEngine::GridLines::Underline;
             }
