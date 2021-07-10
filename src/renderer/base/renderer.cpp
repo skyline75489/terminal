@@ -32,6 +32,7 @@ Renderer::Renderer(IRenderData* pData,
     _pThread{ std::move(thread) },
     _destructing{ false },
     _clusterBuffer{},
+    _vtBufferLine{},
     _viewport{ pData->GetViewport() }
 {
     for (size_t i = 0; i < cEngines; i++)
@@ -725,6 +726,12 @@ void Renderer::_PaintBufferOutputHelper(_In_ IRenderEngine* const pEngine,
                                         const COORD target,
                                         const bool lineWrapped)
 {
+    if (pEngine->Kind() == RenderEngineKind::VirturlTerminal)
+    {
+        _PaintVtBufferOutputHelper(pEngine, it, target, lineWrapped);
+        return;
+    }
+
     auto globalInvert{ _pData->IsScreenReversed() };
 
     // If we have valid data, let's figure out how to draw it.
@@ -869,6 +876,101 @@ void Renderer::_PaintBufferOutputHelper(_In_ IRenderEngine* const pEngine,
                     _PaintBufferOutputGridLineHelper(pEngine, currentRunColor, cols, screenPoint);
                 }
             }
+        }
+    }
+}
+
+void Renderer::_PaintVtBufferOutputHelper(_In_ IRenderEngine* const pEngine,
+                                          TextBufferCellIterator it,
+                                          const COORD target,
+                                          const bool lineWrapped)
+{
+    auto globalInvert{ _pData->IsScreenReversed() };
+
+    // If we have valid data, let's figure out how to draw it.
+    if (it)
+    {
+        size_t cols = 0;
+
+        // Retrieve the first color.
+        auto color = it->TextAttr();
+
+        // And hold the point where we should start drawing.
+        auto screenPoint = target;
+
+        // This outer loop will continue until we reach the end of the text we are trying to draw.
+        while (it)
+        {
+            // Hold onto the current run color right here for the length of the outer loop.
+            // We'll be changing the persistent one as we run through the inner loops to detect
+            // when a run changes, but we will still need to know this color at the bottom
+            // when we go to draw gridlines for the length of the run.
+            const auto currentRunColor = color;
+
+            // Update the drawing brushes with our color.
+            THROW_IF_FAILED(_UpdateDrawingBrushes(pEngine, currentRunColor, false));
+
+            _vtBufferLine.clear();
+            _vtBufferLine.reserve(16);
+
+            // Advance the point by however many columns we've just outputted and reset the accumulator.
+            screenPoint.X += gsl::narrow<SHORT>(cols);
+            cols = 0;
+
+            // Hold onto the start of this run iterator and the target location where we started
+            // in case we need to do some special work to paint the line drawing characters.
+            const auto currentRunItStart = it;
+            const auto currentRunTargetStart = screenPoint;
+
+            // Ensure that our cluster vector is clear.
+            _clusterBuffer.clear();
+
+            // This inner loop will accumulate clusters until the color changes.
+            // When the color changes, it will save the new color off and break.
+            // We also accumulate clusters according to regex patterns
+            do
+            {
+                COORD thisPoint{ screenPoint.X + gsl::narrow<SHORT>(cols), screenPoint.Y };
+                if (color != it->TextAttr())
+                {
+                    auto newAttr{ it->TextAttr() };
+                    // foreground doesn't matter for runs of spaces (!)
+                    // if we trick it . . . we call Paint far fewer times for cmatrix
+                    if (!_IsAllSpaces(it->Chars()) || !newAttr.HasIdenticalVisualRepresentationForBlankSpace(color, globalInvert))
+                    {
+                        color = newAttr;
+                        break; // vend this run
+                    }
+                }
+
+                // Walk through the text data and turn it into rendering clusters.
+                // Keep the columnCount as we go to improve performance over digging it out of the vector at the end.
+                size_t columnCount = 0;
+
+                // If we're on the first cluster to be added and it's marked as "trailing"
+                // (a.k.a. the right half of a two column character), then we need some special handling.
+                if (it->DbcsAttr().IsTrailing())
+                {
+                    // Move left to the one so the whole character can be struck correctly.
+                    --screenPoint.X;
+                    // And add one to the number of columns we expect it to take as we insert it.
+                    columnCount = it->Columns() + 1;
+                }
+                // Otherwise if it's not a special case, just insert it as is.
+                else
+                {
+                    columnCount = it->Columns();
+                }
+
+                _vtBufferLine.append(it->Chars());
+
+                // Advance the cluster and column counts.
+                it += std::max<size_t>(it->Columns(), 1); // prevent infinite loop for no visible columns
+                cols += columnCount;
+            } while (it);
+
+            // Do the painting.
+            THROW_IF_FAILED(pEngine->PaintVtBufferLine(_vtBufferLine, screenPoint, cols, lineWrapped));
         }
     }
 }

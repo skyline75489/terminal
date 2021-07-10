@@ -36,6 +36,11 @@ namespace Microsoft::Console::Render
     class VtEngine : public RenderEngineBase, public Microsoft::Console::ITerminalOutputConnection
     {
     public:
+        [[nodiscard]] virtual RenderEngineKind Kind() noexcept
+        {
+            return RenderEngineKind::VirturlTerminal;
+        }
+
         // See _PaintUtf8BufferLine for explanation of this value.
         static const size_t ERASE_CHARACTER_STRING_LENGTH = 8;
         static const COORD INVALID_COORDS;
@@ -61,9 +66,9 @@ namespace Microsoft::Console::Render
         [[nodiscard]] virtual HRESULT ScrollFrame() noexcept = 0;
 
         [[nodiscard]] HRESULT PaintBackground() noexcept override;
-        [[nodiscard]] virtual HRESULT PaintBufferLine(gsl::span<const Cluster> const clusters,
+        [[nodiscard]] virtual HRESULT PaintVtBufferLine(const std::wstring_view bufferLine,
                                                       const COORD coord,
-                                                      const bool trimLeft,
+                                                        const size_t totalWidth,
                                                       const bool lineWrapped) noexcept override;
         [[nodiscard]] HRESULT PaintBufferGridLines(const GridLines lines,
                                                    const COLORREF color,
@@ -220,14 +225,13 @@ namespace Microsoft::Console::Render
 
         bool _WillWriteSingleChar() const;
 
-        // buffer space for these two functions to build their lines
-        // so they don't have to alloc/free in a tight loop
-        std::wstring _bufferLine;
-        [[nodiscard]] HRESULT _PaintUtf8BufferLine(gsl::span<const Cluster> const clusters,
+        [[nodiscard]] HRESULT _PaintUtf8BufferLine(const std::wstring_view bufferLine,
                                                    const COORD coord,
+                                                    const size_t totalWidth,
                                                    const bool lineWrapped) noexcept;
 
-        [[nodiscard]] HRESULT _PaintAsciiBufferLine(gsl::span<const Cluster> const clusters,
+        [[nodiscard]] HRESULT _PaintAsciiBufferLine(const std::wstring_view bufferLine,
+                                                    const size_t totalWidth,
                                                     const COORD coord) noexcept;
 
         [[nodiscard]] HRESULT _WriteTerminalUtf8(const std::wstring_view str) noexcept;

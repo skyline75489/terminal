@@ -27,6 +27,15 @@ namespace Microsoft::Console::Render
         std::optional<CursorOptions> cursorInfo;
     };
 
+    enum class RenderEngineKind
+    {
+        None,
+        GDI,
+        VirturlTerminal,
+        DirectX,
+        Other
+    };
+
     class IRenderEngine
     {
     public:
@@ -53,6 +62,11 @@ namespace Microsoft::Console::Render
         IRenderEngine& operator=(IRenderEngine&&) = default;
 
     public:
+        [[nodiscard]] virtual RenderEngineKind Kind() noexcept
+        {
+            return RenderEngineKind::None;
+        }
+
         [[nodiscard]] virtual HRESULT StartPaint() noexcept = 0;
         [[nodiscard]] virtual HRESULT EndPaint() noexcept = 0;
 
@@ -82,6 +96,10 @@ namespace Microsoft::Console::Render
                                                            const size_t viewportLeft) noexcept = 0;
 
         [[nodiscard]] virtual HRESULT PaintBackground() noexcept = 0;
+        [[nodiscard]] virtual HRESULT PaintVtBufferLine(const std::wstring_view bufferLine,
+                                                        const COORD coord,
+                                                        const size_t totalWidth,
+                                                        const bool lineWrapped) noexcept = 0;
         [[nodiscard]] virtual HRESULT PaintBufferLine(gsl::span<const Cluster> const clusters,
                                                       const COORD coord,
                                                       const bool fTrimLeft,

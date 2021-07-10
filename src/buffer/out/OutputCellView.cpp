@@ -12,10 +12,10 @@
 // - dbcsAttr - Describes column width information (double byte character data)
 // - textAttr - Describes color and formatting data
 // - behavior - Describes where to retrieve color/format data. From this view? From defaults? etc.
-OutputCellView::OutputCellView(const std::wstring_view view,
-                               const DbcsAttribute dbcsAttr,
-                               const TextAttribute textAttr,
-                               const TextAttributeBehavior behavior) noexcept :
+OutputCellView::OutputCellView(const std::wstring_view& view,
+                               const DbcsAttribute& dbcsAttr,
+                               const TextAttribute& textAttr,
+                               const TextAttributeBehavior& behavior) noexcept :
     _view(view),
     _dbcsAttr(dbcsAttr),
     _textAttr(textAttr),
@@ -23,7 +23,17 @@ OutputCellView::OutputCellView(const std::wstring_view view,
 {
 }
 
-// Routine Description:
+void OutputCellView::Update(const std::wstring_view& view,
+                       const DbcsAttribute& dbcsAttr,
+                       const TextAttribute& textAttr,
+                       const TextAttributeBehavior& behavior) noexcept
+{
+    _view = view;
+    _dbcsAttr = dbcsAttr;
+    _textAttr = textAttr;
+    _behavior = behavior;
+}
+    // Routine Description:
 // - Returns reference to view over text data
 // Return Value:
 // - Reference to UTF-16 character data

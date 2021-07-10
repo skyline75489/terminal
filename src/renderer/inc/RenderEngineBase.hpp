@@ -45,6 +45,20 @@ namespace Microsoft::Console::Render
                                                    const size_t targetRow,
                                                    const size_t viewportLeft) noexcept override;
 
+           [[nodiscard]] virtual HRESULT PaintBufferLine(gsl::span<const Cluster> const,
+                                                      const COORD,
+                                                      const bool,
+                                                      const bool) noexcept override
+        {
+            return S_OK;
+
+          }
+        [[nodiscard]] virtual HRESULT PaintVtBufferLine(const std::wstring_view,
+            const COORD,
+            const size_t,
+            const bool) noexcept override {
+            return S_OK;
+        }
         [[nodiscard]] virtual bool RequiresContinuousRedraw() noexcept override;
 
         void WaitUntilCanRender() noexcept override;

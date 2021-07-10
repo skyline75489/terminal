@@ -107,6 +107,10 @@ namespace Microsoft::Console::Render
                                       const COORD target,
                                       const bool lineWrapped);
 
+        void _PaintVtBufferOutputHelper(_In_ IRenderEngine* const pEngine,
+                                        TextBufferCellIterator it,
+                                        const COORD target,
+                                        const bool lineWrapped);
         static IRenderEngine::GridLines s_GetGridlines(const TextAttribute& textAttribute) noexcept;
 
         void _PaintBufferOutputGridLineHelper(_In_ IRenderEngine* const pEngine,
@@ -128,6 +132,7 @@ namespace Microsoft::Console::Render
 
         static constexpr float _shrinkThreshold = 0.8f;
         std::vector<Cluster> _clusterBuffer;
+        std::wstring _vtBufferLine;
 
         std::vector<SMALL_RECT> _GetSelectionRects() const;
         void _ScrollPreviousSelection(const til::point delta);

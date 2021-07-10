@@ -41,10 +41,10 @@ namespace Microsoft::Console::Render
         [[nodiscard]] virtual HRESULT UpdateDrawingBrushes(const TextAttribute& textAttributes,
                                                            const gsl::not_null<IRenderData*> pData,
                                                            const bool isSettingDefaultBrushes) noexcept override;
-        [[nodiscard]] HRESULT PaintBufferLine(gsl::span<const Cluster> const clusters,
-                                              const COORD coord,
-                                              const bool trimLeft,
-                                              const bool lineWrapped) noexcept override;
+        [[nodiscard]] HRESULT PaintVtBufferLine(const std::wstring_view bufferLine,
+                                               const COORD coord,
+                                               const size_t totalWidth,
+                                               const bool lineWrapped) noexcept override;
         [[nodiscard]] HRESULT ScrollFrame() noexcept override;
 
         [[nodiscard]] HRESULT InvalidateScroll(const COORD* const pcoordDelta) noexcept override;

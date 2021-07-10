@@ -51,7 +51,6 @@ VtEngine::VtEngine(_In_ wil::unique_hfile pipe,
     _deferredCursorPos{ INVALID_COORDS },
     _inResizeRequest{ false },
     _trace{},
-    _bufferLine{},
     _buffer{},
     _formatBuffer{},
     _conversionBuffer{}
@@ -97,6 +96,11 @@ VtEngine::VtEngine(_In_ wil::unique_hfile pipe,
     try
     {
         _buffer.append(str);
+
+        if (_buffer.size() > 4096)
+        {
+            LOG_IF_FAILED(_Flush());
+        }
 
         return S_OK;
     }
