@@ -185,6 +185,59 @@ try
 }
 CATCH_RETURN()
 
+[[nodiscard]] HRESULT Renderer::_FastPaintScrollingFrameForVtEngine(_In_ IRenderEngine* const pEngine) noexcept
+{
+    FAIL_FAST_IF_NULL(pEngine); // This is a programming error. Fail fast.
+
+    _pData->LockConsole();
+    auto unlock = wil::scope_exit([&]() {
+        _pData->UnlockConsole();
+    });
+
+    // Last chance check if anything scrolled without an explicit invalidate notification since the last frame.
+    _CheckViewportAndScroll();
+
+    // Try to start painting a frame
+    HRESULT const hr = pEngine->StartPaint();
+    RETURN_IF_FAILED(hr);
+
+    // Return early if there's nothing to paint.
+    // The renderer itself tracks if there's something to do with the title, the
+    //      engine won't know that.
+    if (S_FALSE == hr)
+    {
+        return S_OK;
+    }
+
+    auto endPaint = wil::scope_exit([&]() {
+        LOG_IF_FAILED(pEngine->EndVtPaint());
+    });
+
+    // A. Prep Colors
+    RETURN_IF_FAILED(_UpdateDrawingBrushes(pEngine, _pData->GetDefaultBrushColors(), true));
+
+    // B. Perform Scroll Operations
+    RETURN_IF_FAILED(_PerformScrolling(pEngine));
+
+    // 1. Paint Background
+    RETURN_IF_FAILED(_PaintBackground(pEngine));
+
+    // 2. Paint Rows of Text
+    _PaintBufferOutput(pEngine);
+
+    // 5. Paint Cursor
+    _PaintCursor(pEngine);
+
+    // Force scope exit end paint to finish up collecting information and possibly painting
+    endPaint.reset();
+
+    // Force scope exit unlock to let go of global lock so other threads can run
+    unlock.reset();
+
+    // As we leave the scope, EndPaint will be called (declared above)
+    return S_OK;
+}
+
 void Renderer::_NotifyPaintFrame()
 {
     // If we're running in the unittests, we might not have a render thread.
@@ -475,7 +528,14 @@ void Renderer::TriggerCircling()
 
         if (SUCCEEDED(hr) && fEngineRequestsRepaint)
         {
-            LOG_IF_FAILED(_PaintFrameForEngine(pEngine));
+            if (pEngine->Kind() == RenderEngineKind::VirturlTerminal)
+            {
+                LOG_IF_FAILED(_FastPaintScrollingFrameForVtEngine(pEngine));
+            }
+            else
+            {
+                LOG_IF_FAILED(_PaintFrameForEngine(pEngine));
+            }
         }
     }
 }
@@ -911,7 +971,6 @@ void Renderer::_PaintVtBufferOutputHelper(_In_ IRenderEngine* const pEngine,
             THROW_IF_FAILED(_UpdateDrawingBrushes(pEngine, currentRunColor, false));
 
             _vtBufferLine.clear();
-            _vtBufferLine.reserve(16);
 
             // Advance the point by however many columns we've just outputted and reset the accumulator.
             screenPoint.X += gsl::narrow<SHORT>(cols);
@@ -970,7 +1029,7 @@ void Renderer::_PaintVtBufferOutputHelper(_In_ IRenderEngine* const pEngine,
             } while (it);
 
             // Do the painting.
-            THROW_IF_FAILED(pEngine->PaintVtBufferLine(_vtBufferLine, screenPoint, cols, lineWrapped));
+            THROW_IF_FAILED(pEngine->PaintVtBufferLine({ _vtBufferLine.data(), _vtBufferLine.size() }, screenPoint, cols, lineWrapped));
         }
     }
 }

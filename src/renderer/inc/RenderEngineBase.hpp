@@ -34,6 +34,8 @@ namespace Microsoft::Console::Render
         RenderEngineBase& operator=(RenderEngineBase&&) = default;
 
     public:
+        [[nodiscard]] virtual HRESULT EndVtPaint() noexcept { return S_OK; };
+
         [[nodiscard]] HRESULT InvalidateTitle(const std::wstring_view proposedTitle) noexcept override;
 
         [[nodiscard]] HRESULT UpdateTitle(const std::wstring_view newTitle) noexcept override;
@@ -51,8 +53,7 @@ namespace Microsoft::Console::Render
                                                       const bool) noexcept override
         {
             return S_OK;
-
-          }
+        }
         [[nodiscard]] virtual HRESULT PaintVtBufferLine(const std::wstring_view,
             const COORD,
             const size_t,

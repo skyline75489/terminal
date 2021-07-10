@@ -53,6 +53,14 @@ using namespace Microsoft::Console::Types;
 // - S_OK, else an appropriate HRESULT for failing to allocate or write.
 [[nodiscard]] HRESULT VtEngine::EndPaint() noexcept
 {
+    RETURN_IF_FAILED(EndVtPaint());
+    RETURN_IF_FAILED(_Flush());
+
+    return S_OK;
+}
+
+[[nodiscard]] HRESULT VtEngine::EndVtPaint() noexcept
+{
     _trace.TraceEndPaint();
 
     _invalidMap.reset_all();
@@ -82,10 +90,9 @@ using namespace Microsoft::Console::Types;
         RETURN_IF_FAILED(_MoveCursor(_deferredCursorPos));
     }
 
-    RETURN_IF_FAILED(_Flush());
-
     return S_OK;
 }
+
 
 // Routine Description:
 // - Used to perform longer running presentation steps outside the lock so the

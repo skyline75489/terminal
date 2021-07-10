@@ -61,6 +61,8 @@ namespace Microsoft::Console::Render
 
         [[nodiscard]] virtual HRESULT StartPaint() noexcept override;
         [[nodiscard]] virtual HRESULT EndPaint() noexcept override;
+        [[nodiscard]] virtual HRESULT EndVtPaint() noexcept override;
+
         [[nodiscard]] virtual HRESULT Present() noexcept override;
 
         [[nodiscard]] virtual HRESULT ScrollFrame() noexcept = 0;

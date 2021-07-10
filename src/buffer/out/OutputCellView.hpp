@@ -35,6 +35,19 @@ public:
                 const TextAttribute& textAttr,
                 const TextAttributeBehavior& behavior) noexcept;
 
+    void UpdateText(const std::wstring_view& view) noexcept {
+        _view = view;
+    };
+
+    void UpdateDbcsAttribute(const DbcsAttribute& dbcsAttr) noexcept {
+        _dbcsAttr = dbcsAttr;
+    }
+                
+    void UpdateTextAttribute(const TextAttribute& textAttr) noexcept
+    {
+        _textAttr = textAttr;
+    }
+
     const std::wstring_view& Chars() const noexcept;
     size_t Columns() const noexcept;
     DbcsAttribute DbcsAttr() const noexcept;

@@ -95,18 +95,46 @@ bool TextBufferCellIterator::operator!=(const TextBufferCellIterator& it) const 
 TextBufferCellIterator& TextBufferCellIterator::operator+=(const ptrdiff_t& movement)
 {
     ptrdiff_t move = movement;
-    auto newPos = _pos;
-    while (move > 0 && !_exceeded)
+    COORD newPos = _pos;
+    if (move > 0)
     {
-        _exceeded = !_bounds.IncrementInBounds(newPos);
-        move--;
+        while (move > 0)
+        {
+            if (newPos.X == _bounds.RightInclusive())
+            {
+                newPos.X = _bounds.Left();
+                newPos.Y++;
+                if (newPos.Y > _bounds.BottomInclusive())
+                {
+                    newPos.Y = _bounds.Top();
+                    _exceeded = true;
+                }
+            }
+            else
+            {
+                newPos.X++;
+                _exceeded = false;
+            }
+
+            if (_exceeded)
+            {
+                break;
+            }
+            move--;
+        }
+
+        if (newPos.X != _pos.X)
+        {
+            const auto diff = gsl::narrow_cast<ptrdiff_t>(newPos.X) - gsl::narrow_cast<ptrdiff_t>(_pos.X);
+            _attrIter += diff;
+            _view.UpdateTextAttribute(*_attrIter);
+        }
     }
-    while (move < 0 && !_exceeded)
-    {
-        _exceeded = !_bounds.DecrementInBounds(newPos);
-        move++;
-    }
-    _SetPos(newPos);
+
+    _view.UpdateText(_pRow->GetCharRow().GlyphAt(newPos.X));
+    _view.UpdateDbcsAttribute(_pRow->GetCharRow().DbcsAttrAt(newPos.X));
+
+    _pos.X = newPos.X;
     return (*this);
 }
 
@@ -201,24 +229,9 @@ ptrdiff_t TextBufferCellIterator::operator-(const TextBufferCellIterator& it)
 // - Sets the coordinate position that this iterator will inspect within the text buffer on dereference.
 // Arguments:
 // - newPos - The new coordinate position.
-void TextBufferCellIterator::_SetPos(const COORD newPos)
+void TextBufferCellIterator::_SetPos(const COORD)
 {
-    if (newPos.Y != _pos.Y)
-    {
-        _pRow = s_GetRow(_buffer, newPos);
-        _attrIter = _pRow->GetAttrRow().cbegin();
-        _pos.X = 0;
-    }
-
-    if (newPos.X != _pos.X)
-    {
-        const auto diff = gsl::narrow_cast<ptrdiff_t>(newPos.X) - gsl::narrow_cast<ptrdiff_t>(_pos.X);
-        _attrIter += diff;
-    }
-
-    _pos = newPos;
-
-    _GenerateView();
+ 
 }
 
 // Routine Description:

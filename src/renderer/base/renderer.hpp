@@ -95,6 +95,7 @@ namespace Microsoft::Console::Render
         void _NotifyPaintFrame();
 
         [[nodiscard]] HRESULT _PaintFrameForEngine(_In_ IRenderEngine* const pEngine) noexcept;
+        [[nodiscard]] HRESULT _FastPaintScrollingFrameForVtEngine(_In_ IRenderEngine* const pEngine) noexcept;
 
         bool _CheckViewportAndScroll();
 
@@ -132,7 +133,7 @@ namespace Microsoft::Console::Render
 
         static constexpr float _shrinkThreshold = 0.8f;
         std::vector<Cluster> _clusterBuffer;
-        std::wstring _vtBufferLine;
+        fmt::basic_memory_buffer<wchar_t, 120> _vtBufferLine;
 
         std::vector<SMALL_RECT> _GetSelectionRects() const;
         void _ScrollPreviousSelection(const til::point delta);

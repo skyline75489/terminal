@@ -68,6 +68,7 @@ namespace Microsoft::Console::Render
         }
 
         [[nodiscard]] virtual HRESULT StartPaint() noexcept = 0;
+        [[nodiscard]] virtual HRESULT EndVtPaint() noexcept = 0;
         [[nodiscard]] virtual HRESULT EndPaint() noexcept = 0;
 
         [[nodiscard]] virtual bool RequiresContinuousRedraw() noexcept = 0;

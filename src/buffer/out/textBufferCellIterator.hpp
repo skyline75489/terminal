@@ -62,7 +62,6 @@ protected:
     const Microsoft::Console::Types::Viewport _bounds;
     bool _exceeded;
     COORD _pos;
-
 #if UNIT_TESTING
     friend class TextBufferIteratorTests;
     friend class TextBufferTests;
