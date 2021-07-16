@@ -99,6 +99,7 @@ private:
     TextAttribute _attr;
 
     bool _TryMoveTrailing() noexcept;
+    void _MoveColdPath() noexcept;
 
     static OutputCellView s_GenerateView(const std::wstring_view view);
 
@@ -108,7 +109,6 @@ private:
     static OutputCellView s_GenerateView(const std::wstring_view view,
                                          const TextAttribute attr,
                                          const TextAttributeBehavior behavior);
-
     static OutputCellView s_GenerateView(const wchar_t& wch) noexcept;
     static OutputCellView s_GenerateViewLegacyAttr(const WORD& legacyAttr) noexcept;
     static OutputCellView s_GenerateView(const TextAttribute& attr) noexcept;

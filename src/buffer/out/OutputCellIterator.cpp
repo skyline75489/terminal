@@ -205,7 +205,85 @@ OutputCellIterator& OutputCellIterator::operator++()
 {
     // Keep track of total distance moved (cells filled)
     _distance++;
+    const auto newPos = _pos + _currentView.Chars().size();
+    const auto run = std::get<std::wstring_view>(_run);
+    if (_mode == Mode::Loose && newPos >= run.length())
+    {
+        auto currentDbcsAttr = _currentView.DbcsAttr();
+        if (currentDbcsAttr.IsLeading())
+        {
+            currentDbcsAttr.SetTrailing();
+            _currentView.UpdateDbcsAttribute(currentDbcsAttr);
+        }
+        else
+        {
+            _pos += _currentView.Chars().size();
+        }
+    }
+    else
+    {
+        _MoveColdPath();
+    }
 
+    return (*this);
+}
+
+// Routine Description:
+// - Advances the iterator one position over the underlying data source.
+// Return Value:
+// - Reference to self after advancement.
+OutputCellIterator OutputCellIterator::operator++(int)
+{
+    auto temp(*this);
+    operator++();
+    return temp;
+}
+
+// Routine Description:
+// - Reference the view to fully-formed output cell data representing the underlying data source.
+// Return Value:
+// - Reference to the view
+const OutputCellView& OutputCellIterator::operator*() const noexcept
+{
+    return _currentView;
+}
+
+// Routine Description:
+// - Get pointer to the view to fully-formed output cell data representing the underlying data source.
+// Return Value:
+// - Pointer to the view
+const OutputCellView* OutputCellIterator::operator->() const noexcept
+{
+    return &_currentView;
+}
+
+// Routine Description:
+// - Checks the current view. If it is a leading half, it updates the current
+//   view to the trailing half of the same glyph.
+// - This helps us to draw glyphs that are two columns wide by "doubling"
+//   the view that is returned so it will consume two cells.
+// Return Value:
+// - True if we just turned a lead half into a trailing half (and caller doesn't
+//   need to further update the view).
+// - False if this wasn't applicable and the caller should update the view.
+bool OutputCellIterator::_TryMoveTrailing() noexcept
+{
+    auto currentDbcsAttr = _currentView.DbcsAttr();
+    if (currentDbcsAttr.IsLeading())
+    {
+        currentDbcsAttr.SetTrailing();
+        _currentView.UpdateDbcsAttribute(currentDbcsAttr);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+
+void OutputCellIterator::_MoveColdPath() noexcept
+{
     switch (_mode)
     {
     case Mode::Loose:
@@ -292,67 +370,7 @@ OutputCellIterator& OutputCellIterator::operator++()
     default:
         FAIL_FAST_HR(E_NOTIMPL);
     }
-
-    return (*this);
 }
-
-// Routine Description:
-// - Advances the iterator one position over the underlying data source.
-// Return Value:
-// - Reference to self after advancement.
-OutputCellIterator OutputCellIterator::operator++(int)
-{
-    auto temp(*this);
-    operator++();
-    return temp;
-}
-
-// Routine Description:
-// - Reference the view to fully-formed output cell data representing the underlying data source.
-// Return Value:
-// - Reference to the view
-const OutputCellView& OutputCellIterator::operator*() const noexcept
-{
-    return _currentView;
-}
-
-// Routine Description:
-// - Get pointer to the view to fully-formed output cell data representing the underlying data source.
-// Return Value:
-// - Pointer to the view
-const OutputCellView* OutputCellIterator::operator->() const noexcept
-{
-    return &_currentView;
-}
-
-// Routine Description:
-// - Checks the current view. If it is a leading half, it updates the current
-//   view to the trailing half of the same glyph.
-// - This helps us to draw glyphs that are two columns wide by "doubling"
-//   the view that is returned so it will consume two cells.
-// Return Value:
-// - True if we just turned a lead half into a trailing half (and caller doesn't
-//   need to further update the view).
-// - False if this wasn't applicable and the caller should update the view.
-bool OutputCellIterator::_TryMoveTrailing() noexcept
-{
-    if (_currentView.DbcsAttr().IsLeading())
-    {
-        auto dbcsAttr = _currentView.DbcsAttr();
-        dbcsAttr.SetTrailing();
-
-        _currentView = OutputCellView(_currentView.Chars(),
-                                      dbcsAttr,
-                                      _currentView.TextAttr(),
-                                      _currentView.TextAttrBehavior());
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
 // Routine Description:
 // - Static function to create a view.
 // - It's pulled out statically so it can be used during construction with just the given
@@ -407,6 +425,7 @@ OutputCellView OutputCellIterator::s_GenerateView(const std::wstring_view view,
 
     return OutputCellView(glyph, dbcsAttr, attr, behavior);
 }
+
 
 // Routine Description:
 // - Static function to create a view.

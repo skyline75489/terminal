@@ -19,10 +19,14 @@ std::wstring_view Utf16Parser::ParseNext(std::wstring_view wstr) noexcept
     for (size_t pos = 0; pos < wstr.size(); ++pos)
     {
         const auto wch = wstr.at(pos);
-
+        // If it's neither lead nor trail, then it's < U+10000 and it can be returned as a single wchar_t point.
+        if (wch < 0x10000)
+        {
+            return wstr.substr(pos, 1);
+        }
         // If it's a lead and followed directly by a trail, then return the pair.
         // If it's not followed directly by the trail, go around again and seek forward.
-        if (IsLeadingSurrogate(wch))
+        else if (IsLeadingSurrogate(wch))
         {
             // Try to find the next item... if it isn't there, we'll go around again.
             const auto posNext = pos + 1;
@@ -42,11 +46,7 @@ std::wstring_view Utf16Parser::ParseNext(std::wstring_view wstr) noexcept
         {
             continue;
         }
-        // If it's neither lead nor trail, then it's < U+10000 and it can be returned as a single wchar_t point.
-        else
-        {
-            return wstr.substr(pos, 1);
-        }
+
     }
 
     // If we get all the way through and there's nothing valid, then this is just a replacement character as it was broken/garbage.

@@ -36,6 +36,26 @@ public:
     TextAttribute TextAttr() const noexcept;
     TextAttributeBehavior TextAttrBehavior() const noexcept;
 
+    void UpdateText(const std::wstring_view& view) noexcept
+    {
+        _view = view;
+    };
+
+    void UpdateDbcsAttribute(const DbcsAttribute& dbcsAttr) noexcept
+    {
+        _dbcsAttr = dbcsAttr;
+    }
+
+    void UpdateTextAttribute(const TextAttribute& textAttr) noexcept
+    {
+        _textAttr = textAttr;
+    }
+
+    void UpdateTextAttributeBehavior(const TextAttributeBehavior& textAttr) noexcept
+    {
+        _behavior = textAttr;
+    }
+
     bool operator==(const OutputCellView& view) const noexcept;
     bool operator!=(const OutputCellView& view) const noexcept;
 
